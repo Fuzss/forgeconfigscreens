@@ -1,9 +1,10 @@
 package fuzs.configmenusforge.client.handler;
 
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screen.OptionsScreen;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.ExtensionPoint;
-import net.minecraftforge.fml.ModContainer;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.loading.moddiscovery.ModInfo;
 
@@ -21,19 +22,10 @@ public class ConfigFactoryHandler {
         });
     }
 
-    private static ResourceLocation getBackgroundLocation(ModContainer container) {
-        if (container.getModInfo() instanceof ModInfo) {
-            String background = (String) container.getModInfo().getModProperties().get("configuredBackground");
-            if (background != null) {
-                return new ResourceLocation(background);
-            }
-            // Fallback to old method to getting config background (since mods might not have updated)
-            Optional<String> optional = ((ModInfo) container.getModInfo()).getConfigElement("configBackground");
-            if (optional.isPresent()) {
-                return new ResourceLocation(optional.get());
-            }
-        }
-        return Screen.BACKGROUND_LOCATION;
+    public static void registerMinecraftConfig() {
+        ModList.get().getModContainerById("minecraft").ifPresent(container -> {
+            container.registerExtensionPoint(ExtensionPoint.CONFIGGUIFACTORY, () -> (mc, screen) -> new OptionsScreen(screen, Minecraft.getInstance().options));
+        });
     }
 
     private static Optional<ResourceLocation> getCustomBackground(ModInfo modInfo) {

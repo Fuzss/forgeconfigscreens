@@ -1,4 +1,4 @@
-# Forge Ingame Configs
+# Config Menus for Forge
 
 A Minecraft mod. Downloads can be found on CurseForge.
 

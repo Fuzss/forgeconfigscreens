@@ -14,5 +14,7 @@ public class ConfigMenusForgeClient {
     public static void onClientSetup(final FMLClientSetupEvent evt) {
         // registering this early is alright; mods that have already registered their own screen won't be overwritten, mods that register later will just overwrite us
         ConfigFactoryHandler.registerConfigFactories();
+        // uhm why not
+        ConfigFactoryHandler.registerMinecraftConfig();
     }
 }

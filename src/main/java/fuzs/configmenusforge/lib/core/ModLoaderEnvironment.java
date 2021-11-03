@@ -68,7 +68,7 @@ public class ModLoaderEnvironment {
      */
     public static boolean isDevelopmentEnvironment() {
 
-        return FMLEnvironment.production;
+        return !FMLEnvironment.production;
     }
 
     /**

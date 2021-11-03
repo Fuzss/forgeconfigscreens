@@ -7,6 +7,7 @@ import com.mojang.blaze3d.matrix.MatrixStack;
 import fuzs.configmenusforge.ConfigMenusForge;
 import fuzs.configmenusforge.client.gui.components.ConfigSelectionList;
 import fuzs.configmenusforge.client.gui.util.ScreenUtil;
+import fuzs.configmenusforge.client.gui.widget.AnimatedIconButton;
 import fuzs.configmenusforge.client.util.ServerConfigUploader;
 import fuzs.configmenusforge.config.data.IEntryData;
 import fuzs.configmenusforge.lib.core.ModLoaderEnvironment;
@@ -17,7 +18,6 @@ import net.minecraft.client.gui.DialogTexts;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.gui.widget.button.Button;
-import net.minecraft.client.gui.widget.button.ImageButton;
 import net.minecraft.util.IReorderingProcessor;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.*;
@@ -33,6 +33,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @SuppressWarnings("ConstantConditions")
 public class SelectConfigScreen extends Screen {
@@ -47,6 +48,7 @@ public class SelectConfigScreen extends Screen {
 	private Button restoreButton;
 	private Button copyButton;
 	private Button fileButton;
+	private AnimatedIconButton tinyJumperButton;
 	private boolean serverPermissions;
 
 	public SelectConfigScreen(Screen lastScreen, ITextComponent displayName, ResourceLocation optionsBackground, Set<ModConfig> configs) {
@@ -61,6 +63,7 @@ public class SelectConfigScreen extends Screen {
 	@Override
 	public void tick() {
 		this.searchBox.tick();
+		this.tinyJumperButton.tick();
 	}
 
 	@Override
@@ -135,12 +138,7 @@ public class SelectConfigScreen extends Screen {
 		this.updateButtonStatus(false);
 		this.list = new ConfigSelectionList(this, this.minecraft, this.width, this.height, 50, this.height - 60, 36, this.searchBox.getValue());
 		this.addWidget(this.list);
-		this.addButton(new ImageButton(14, 14, 19, 23, 0, 0, 0, ConfigScreen.LOGO_TEXTURE, 32, 32, button -> {
-			Style style = Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, ConfigMenusForge.URL));
-			this.handleComponentClicked(style);
-		}, (Button button, MatrixStack poseStack, int mouseX, int mouseY) -> {
-			this.renderTooltip(poseStack, this.font.split(ConfigScreen.INFO_TOOLTIP, 200), mouseX, mouseY);
-		}, StringTextComponent.EMPTY));
+		this.tinyJumperButton = this.addButton(ScreenUtil.makeModPageButton(this.width, this.height, this.font, this::handleComponentClicked, this::renderTooltip));
 		this.setInitialFocus(this.searchBox);
 	}
 

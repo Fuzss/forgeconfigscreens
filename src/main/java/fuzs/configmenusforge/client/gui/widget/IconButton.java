@@ -13,8 +13,8 @@ import net.minecraft.util.text.StringTextComponent;
  */
 public class IconButton extends Button {
     private final ResourceLocation resourceLocation;
-    private int xTexStart;
-    private int yTexStart;
+    protected int xTexStart;
+    protected int yTexStart;
     private final int yDiffTex;
     private final int textureWidth;
     private final int textureHeight;

@@ -8,6 +8,7 @@ import fuzs.configmenusforge.ConfigMenusForge;
 import fuzs.configmenusforge.client.gui.components.CustomBackgroundContainerObjectSelectionList;
 import fuzs.configmenusforge.client.gui.data.EntryData;
 import fuzs.configmenusforge.client.gui.util.ScreenUtil;
+import fuzs.configmenusforge.client.gui.widget.AnimatedIconButton;
 import fuzs.configmenusforge.client.gui.widget.ConfigEditBox;
 import fuzs.configmenusforge.client.gui.widget.IconButton;
 import fuzs.configmenusforge.client.util.ServerConfigUploader;
@@ -20,12 +21,10 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.gui.widget.Widget;
 import net.minecraft.client.gui.widget.button.Button;
-import net.minecraft.client.gui.widget.button.ImageButton;
 import net.minecraft.client.gui.widget.list.AbstractOptionList;
 import net.minecraft.util.IReorderingProcessor;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.*;
-import net.minecraft.util.text.event.ClickEvent;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.fml.config.ModConfig;
 
@@ -40,12 +39,10 @@ import java.util.stream.Stream;
 @SuppressWarnings("ConstantConditions")
 public abstract class ConfigScreen extends Screen {
     public static final ResourceLocation ICONS_LOCATION = new ResourceLocation(ConfigMenusForge.MOD_ID, "textures/gui/icons.png");
-    public static final ResourceLocation LOGO_TEXTURE = new ResourceLocation(ConfigMenusForge.MOD_ID, "textures/gui/logo.png");
-    public static final TranslationTextComponent INFO_TOOLTIP = new TranslationTextComponent("configmenusforge.gui.info", ConfigMenusForge.NAME);
-    public static final TranslationTextComponent SORTING_AZ_TOOLTIP = new TranslationTextComponent("configmenusforge.gui.tooltip.sorting", new TranslationTextComponent("configmenusforge.gui.tooltip.sorting.az"));
-    public static final TranslationTextComponent SORTING_ZA_TOOLTIP = new TranslationTextComponent("configmenusforge.gui.tooltip.sorting", new TranslationTextComponent("configmenusforge.gui.tooltip.sorting.za"));
-    private static final IFormattableTextComponent SEARCH_COMPONENT = new TranslationTextComponent("configmenusforge.gui.search").withStyle(TextFormatting.GRAY);
-    private static final TranslationTextComponent RESET_TOOLTIP = new TranslationTextComponent("configmenusforge.gui.tooltip.reset");
+    public static final ITextComponent SORTING_AZ_TOOLTIP = new TranslationTextComponent("configmenusforge.gui.tooltip.sorting", new TranslationTextComponent("configmenusforge.gui.tooltip.sorting.az"));
+    public static final ITextComponent SORTING_ZA_TOOLTIP = new TranslationTextComponent("configmenusforge.gui.tooltip.sorting", new TranslationTextComponent("configmenusforge.gui.tooltip.sorting.za"));
+    private static final ITextComponent SEARCH_COMPONENT = new TranslationTextComponent("configmenusforge.gui.search").withStyle(TextFormatting.GRAY);
+    private static final ITextComponent RESET_TOOLTIP = new TranslationTextComponent("configmenusforge.gui.tooltip.reset");
 
     final Screen lastScreen;
     final ResourceLocation background;
@@ -70,6 +67,7 @@ public abstract class ConfigScreen extends Screen {
     private Button reverseButton;
     private Button filterButton;
     private Button searchFilterButton;
+    private AnimatedIconButton tinyJumperButton;
     // 0 = reverse, 1 = filter, 2 = search filter
     private final int[] buttonData;
     @Nullable
@@ -116,7 +114,7 @@ public abstract class ConfigScreen extends Screen {
     }
 
     public static ConfigScreen create(Screen lastScreen, ITextComponent title, ResourceLocation background, ModConfig config, Map<Object, IEntryData> valueToData) {
-        return new ConfigScreen.Main(lastScreen, title, background, ((ForgeConfigSpec) config.getSpec()).getValues(), valueToData, () -> ServerConfigUploader.saveAndUpload(config));
+        return new ConfigScreen.Main(lastScreen, title, background, config.getSpec().getValues(), valueToData, () -> ServerConfigUploader.saveAndUpload(config));
     }
 
     private static class Main extends ConfigScreen {
@@ -310,12 +308,7 @@ public abstract class ConfigScreen extends Screen {
         this.list = new ConfigList(this.getConfigListEntries(this.searchTextField.getValue()));
         this.addWidget(this.list);
         this.addWidget(this.searchTextField);
-        this.addButton(new ImageButton(14, 14, 19, 23, 0, 0, 0, LOGO_TEXTURE, 32, 32, button -> {
-            Style style = Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, ConfigMenusForge.URL));
-            this.handleComponentClicked(style);
-        }, (Button button, MatrixStack poseStack, int mouseX, int mouseY) -> {
-            this.renderTooltip(poseStack, this.font.split(INFO_TOOLTIP, 200), mouseX, mouseY);
-        }, StringTextComponent.EMPTY));
+        this.tinyJumperButton = this.addButton(ScreenUtil.makeModPageButton(this.width, this.height, this.font, this::handleComponentClicked, this::renderTooltip));
         this.reverseButton = this.addButton(new IconButton(this.width / 2 - 146, 22, 20, 20, this.buttonData[0] == 1 ? 20 : 0, 0, ICONS_LOCATION, button -> {
             this.buttonData[0] = (this.buttonData[0] + 1) % 2;
             this.updateList(true);
@@ -381,6 +374,8 @@ public abstract class ConfigScreen extends Screen {
     public void tick() {
         // makes the cursor blink
         this.searchTextField.tick();
+        // makes jumper jump when hovered
+        this.tinyJumperButton.tick();
         if (this.activeTextField != null) {
             this.activeTextField.tick();
         }
