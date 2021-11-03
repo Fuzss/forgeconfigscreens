@@ -53,8 +53,8 @@ public class ScreenUtil {
         };
     }
 
-    public static AnimatedIconButton makeModPageButton(int screenWidth, int screenHeight, FontRenderer font, Consumer<Style> handleComponentClicked, ITooltipRenderer renderTooltip) {
-        return new AnimatedIconButton(screenWidth / 2 + 154 + 4, screenHeight - 28, 20, 20, 0, 0, TINY_JUMPER_LOCATION, button -> {
+    public static AnimatedIconButton makeModPageButton(int posX, int posY, FontRenderer font, Consumer<Style> handleComponentClicked, ITooltipRenderer renderTooltip) {
+        return new AnimatedIconButton(posX, posY, 20, 20, 0, 0, TINY_JUMPER_LOCATION, button -> {
             Style style = Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, ConfigMenusForge.URL));
             handleComponentClicked.accept(style);
         }, (Button button, MatrixStack poseStack, int mouseX, int mouseY) -> {

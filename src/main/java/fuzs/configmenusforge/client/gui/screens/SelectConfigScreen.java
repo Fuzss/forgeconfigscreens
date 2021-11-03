@@ -138,7 +138,7 @@ public class SelectConfigScreen extends Screen {
 		this.updateButtonStatus(false);
 		this.list = new ConfigSelectionList(this, this.minecraft, this.width, this.height, 50, this.height - 60, 36, this.searchBox.getValue());
 		this.addWidget(this.list);
-		this.tinyJumperButton = this.addButton(ScreenUtil.makeModPageButton(this.width, this.height, this.font, this::handleComponentClicked, this::renderTooltip));
+		this.tinyJumperButton = this.addButton(ScreenUtil.makeModPageButton(this.width / 2 + 146 - 20, 22, this.font, this::handleComponentClicked, this::renderTooltip));
 		this.setInitialFocus(this.searchBox);
 	}
 
