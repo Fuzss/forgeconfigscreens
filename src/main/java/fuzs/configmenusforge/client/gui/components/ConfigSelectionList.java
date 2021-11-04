@@ -179,7 +179,8 @@ public class ConfigSelectionList extends CustomBackgroundObjectSelectionList<Con
 		}
 
 		public boolean invalidData() {
-			return this.screen.getValueToDataMap(this.config).isEmpty();
+			// check if world is loaded as Forge doesn't clean-up server config after leaving world
+			return this.config.getType() == ModConfig.Type.SERVER && this.minecraft.getConnection() == null || this.screen.getValueToDataMap(this.config).isEmpty();
 		}
 
 		private boolean noPermissions() {

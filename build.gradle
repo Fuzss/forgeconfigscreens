@@ -302,6 +302,7 @@ curseforge {
 //        mainArtifact shadowJar
         addArtifact sourceJar
 //        relations { requiredDependency 'puzzles-lib' }
+        relations { requiredDependency 'better-mods-button' }
     }
 
     options {
