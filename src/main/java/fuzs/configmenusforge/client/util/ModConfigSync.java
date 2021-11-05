@@ -8,7 +8,7 @@ import java.io.ByteArrayInputStream;
 public class ModConfigSync {
 
     public static void fireReloadEvent(ModConfig config) {
-        ReflectionHelper.invoke(ReflectionHelper.FIRE_EVENT_METHOD, config, ReflectionHelper.newInstance(ReflectionHelper.MOD_CONFIG_RELOADING_CONSTRUCTOR, config));
+        ReflectionHelper.newInstance(ReflectionHelper.MOD_CONFIG_RELOADING_CONSTRUCTOR, config).ifPresent(evt -> ReflectionHelper.invoke(ReflectionHelper.FIRE_EVENT_METHOD, config, evt));
     }
 
     public static void acceptSyncedConfig(ModConfig config, byte[] bytes) {

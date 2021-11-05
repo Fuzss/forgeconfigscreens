@@ -3,6 +3,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog].
 
+## [v1.1-1.16.5] - 2021-11-05
+### Added
+- Added filter button to config screen, supports: all, edited, resettable
+- Added filter button to search screen, in addition to config screen options supports: entries only, categories only
+### Fixed
+- Fixed server configs reloading on a dedicated server throwing an exception
+
 ## [v1.0.1-1.16.5] - 2021-11-05
 ### Changed
 - Better compatibility for button rendering with resource packs

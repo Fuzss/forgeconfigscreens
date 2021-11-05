@@ -8,7 +8,6 @@ import fuzs.configmenusforge.ConfigMenusForge;
 import fuzs.configmenusforge.client.gui.components.CustomBackgroundContainerObjectSelectionList;
 import fuzs.configmenusforge.client.gui.data.EntryData;
 import fuzs.configmenusforge.client.gui.util.ScreenUtil;
-import fuzs.configmenusforge.client.gui.widget.AnimatedIconButton;
 import fuzs.configmenusforge.client.gui.widget.ConfigEditBox;
 import fuzs.configmenusforge.client.gui.widget.IconButton;
 import fuzs.configmenusforge.client.util.ServerConfigUploader;
@@ -32,7 +31,9 @@ import javax.annotation.Nullable;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @SuppressWarnings("ConstantConditions")
 public abstract class ConfigScreen extends Screen {
@@ -63,9 +64,8 @@ public abstract class ConfigScreen extends Screen {
     private ConfigList list;
     TextFieldWidget searchTextField;
     private Button reverseButton;
-//    private Button filterButton;
-//    private Button searchFilterButton;
-    private AnimatedIconButton tinyJumperButton;
+    private Button filterButton;
+    private Button searchFilterButton;
     // 0 = reverse, 1 = filter, 2 = search filter
     private final int[] buttonData;
     @Nullable
@@ -306,8 +306,7 @@ public abstract class ConfigScreen extends Screen {
         this.list = new ConfigList(this.getConfigListEntries(this.searchTextField.getValue()));
         this.addWidget(this.list);
         this.addWidget(this.searchTextField);
-        this.tinyJumperButton = this.addButton(ScreenUtil.makeModPageButton(this.width / 2 + 146 - 20, 22, this.font, this::handleComponentClicked, this::renderTooltip));
-        this.reverseButton = this.addButton(new IconButton(this.width / 2 - 146, 22, 20, 20, this.buttonData[0] == 1 ? 20 : 0, 0, ICONS_LOCATION, button -> {
+        this.reverseButton = this.addButton(new IconButton(this.width / 2 - 126 - 20, 22, 20, 20, this.buttonData[0] == 1 ? 20 : 0, 0, ICONS_LOCATION, button -> {
             this.buttonData[0] = (this.buttonData[0] + 1) % 2;
             this.updateList(true);
             ((IconButton) button).setTexture(this.buttonData[0] == 1 ? 20 : 0, 0);
@@ -316,24 +315,24 @@ public abstract class ConfigScreen extends Screen {
                 this.renderTooltip(poseStack, this.buttonData[0] == 1 ? SORTING_ZA_TOOLTIP : SORTING_AZ_TOOLTIP, mouseX, mouseY);
             }
         }));
-//        this.filterButton = this.addButton(new IconButton(this.width / 2 + 146 - 20, 22, 20, 20, EntryFilter.values()[this.buttonData[1]].getTextureX(), 0, ICONS_LOCATION, button -> {
-//            this.buttonData[1] = EntryFilter.cycle(this.buttonData[1], false, Screen.hasShiftDown());
-//            this.updateList(true);
-//            ((IconButton) button).setTexture(EntryFilter.values()[this.buttonData[1]].getTextureX(), 0);
-//        }, (button, poseStack, mouseX, mouseY) -> {
-//            if (button.active) {
-//                this.renderTooltip(poseStack, EntryFilter.values()[this.buttonData[1]].getMessage(), mouseX, mouseY);
-//            }
-//        }));
-//        this.searchFilterButton = this.addButton(new IconButton(this.width / 2 + 146 - 20, 22, 20, 20, EntryFilter.values()[this.buttonData[2]].getTextureX(), 0, ICONS_LOCATION, button -> {
-//            this.buttonData[2] = EntryFilter.cycle(this.buttonData[2], true, Screen.hasShiftDown());
-//            this.updateList(true);
-//            ((IconButton) button).setTexture(EntryFilter.values()[this.buttonData[2]].getTextureX(), 0);
-//        }, (button, poseStack, mouseX, mouseY) -> {
-//            if (button.active) {
-//                this.renderTooltip(poseStack, EntryFilter.values()[this.buttonData[2]].getMessage(), mouseX, mouseY);
-//            }
-//        }));
+        this.filterButton = this.addButton(new IconButton(this.width / 2 + 126, 22, 20, 20, EntryFilter.values()[this.buttonData[1]].getTextureX(), 0, ICONS_LOCATION, button -> {
+            this.buttonData[1] = EntryFilter.cycle(this.buttonData[1], false, Screen.hasShiftDown());
+            this.updateList(true);
+            ((IconButton) button).setTexture(EntryFilter.values()[this.buttonData[1]].getTextureX(), 0);
+        }, (button, poseStack, mouseX, mouseY) -> {
+            if (button.active) {
+                this.renderTooltip(poseStack, EntryFilter.values()[this.buttonData[1]].getMessage(), mouseX, mouseY);
+            }
+        }));
+        this.searchFilterButton = this.addButton(new IconButton(this.width / 2 + 126, 22, 20, 20, EntryFilter.values()[this.buttonData[2]].getTextureX(), 0, ICONS_LOCATION, button -> {
+            this.buttonData[2] = EntryFilter.cycle(this.buttonData[2], true, Screen.hasShiftDown());
+            this.updateList(true);
+            ((IconButton) button).setTexture(EntryFilter.values()[this.buttonData[2]].getTextureX(), 0);
+        }, (button, poseStack, mouseX, mouseY) -> {
+            if (button.active) {
+                this.renderTooltip(poseStack, EntryFilter.values()[this.buttonData[2]].getMessage(), mouseX, mouseY);
+            }
+        }));
     }
 
     public void updateList(boolean resetScroll) {
@@ -353,8 +352,7 @@ public abstract class ConfigScreen extends Screen {
     List<ConfigScreen.Entry> getConfigListEntries(List<IEntryData> entries, final String searchHighlight) {
         final boolean empty = searchHighlight.isEmpty();
         return entries.stream()
-                .filter(data -> data.mayInclude(searchHighlight))
-//                .filter(data -> data.mayInclude(searchHighlight) && EntryFilter.values()[empty ? this.buttonData[1] : this.buttonData[2]].test(data, empty))
+                .filter(data -> data.mayInclude(searchHighlight) && EntryFilter.values()[empty ? this.buttonData[1] : this.buttonData[2]].test(data, empty))
                 .sorted(IEntryData.getSearchComparator(searchHighlight, this.buttonData[0] == 1))
                 .map(entryData -> this.makeEntry(entryData, searchHighlight))
                 // there might be an unsupported value which will return null
@@ -363,18 +361,16 @@ public abstract class ConfigScreen extends Screen {
     }
 
     void onSearchFieldChanged(boolean isEmpty) {
+        this.reverseButton.active = isEmpty;
         // sets button visibilities
-        this.reverseButton.visible = isEmpty;
-//        this.filterButton.visible = isEmpty;
-//        this.searchFilterButton.visible = !isEmpty;
+        this.filterButton.visible = isEmpty;
+        this.searchFilterButton.visible = !isEmpty;
     }
 
     @Override
     public void tick() {
         // makes the cursor blink
         this.searchTextField.tick();
-        // makes jumper jump when hovered
-        this.tinyJumperButton.tick();
         if (this.activeTextField != null) {
             this.activeTextField.tick();
         }
@@ -498,67 +494,66 @@ public abstract class ConfigScreen extends Screen {
         return null;
     }
 
-//    private enum EntryFilter {
-//
-//        ALL(6, "configmenusforge.gui.tooltip.showing.all", data -> true),
-//        ENTRIES(2, "configmenusforge.gui.tooltip.showing.entries", iEntryData -> !iEntryData.category(), true),
-//        CATEGORIES(8, "configmenusforge.gui.tooltip.showing.categories", IEntryData::category, true),
-//        EDITED(3, "configmenusforge.gui.tooltip.showing.edited", iEntryData -> !iEntryData.mayDiscardChanges()),
-//        RESETTABLE(7, "configmenusforge.gui.tooltip.showing.resettable", IEntryData::mayResetValue);
-//
-//        private static final String SHOWING_TRANSLATION_KEY = "configmenusforge.gui.tooltip.showing";
-//        private static final int[] DEFAULT_FILTERS_INDICES = Stream.of(EntryFilter.values())
-//                .filter(entryFilter -> !entryFilter.searchOnly())
-//                .mapToInt(Enum::ordinal)
-//                .toArray();
-//
-//        private final int textureX;
-//        private final ITextComponent message;
-//        private final Predicate<IEntryData> predicate;
-//        private final boolean searchOnly;
-//
-//        EntryFilter(int textureIndex, String translationKey, Predicate<IEntryData> predicate) {
-//            this(textureIndex, translationKey, predicate, false);
-//        }
-//
-//        EntryFilter(int textureIndex, String translationKey, Predicate<IEntryData> predicate, boolean searchOnly) {
-//            this.textureX = textureIndex * 20;
-//            this.message = new TranslationTextComponent(SHOWING_TRANSLATION_KEY, new TranslationTextComponent(translationKey));
-//            this.predicate = predicate;
-//            this.searchOnly = searchOnly;
-//        }
-//
-//        public int getTextureX() {
-//            return this.textureX;
-//        }
-//
-//        public ITextComponent getMessage() {
-//            return this.message;
-//        }
-//
-//        public boolean test(IEntryData data, boolean empty) {
-//            return this.predicate.test(data) || empty && data.category();
-//        }
-//
-//        private boolean searchOnly() {
-//            return this.searchOnly;
-//        }
-//
-//        public static int cycle(int index, boolean search, boolean reversed) {
-//            if (!search) {
-//                for (int i = 0; i < DEFAULT_FILTERS_INDICES.length; i++) {
-//                    if (DEFAULT_FILTERS_INDICES[i] == index) {
-//                        index = i;
-//                        break;
-//                    }
-//                }
-//            }
-//            int length = search ? EntryFilter.values().length : DEFAULT_FILTERS_INDICES.length;
-//            int amount = reversed ? -1 : 1;
-//            index = (index + amount + length) % length;
-//            return search ? index : DEFAULT_FILTERS_INDICES[index];
-//        }
-//    }
+    private enum EntryFilter {
+        ALL(6, "configmenusforge.gui.tooltip.showing.all", data -> true),
+        ENTRIES(2, "configmenusforge.gui.tooltip.showing.entries", iEntryData -> !iEntryData.category(), true),
+        CATEGORIES(8, "configmenusforge.gui.tooltip.showing.categories", IEntryData::category, true),
+        EDITED(3, "configmenusforge.gui.tooltip.showing.edited", iEntryData -> !iEntryData.mayDiscardChanges()),
+        RESETTABLE(7, "configmenusforge.gui.tooltip.showing.resettable", IEntryData::mayResetValue);
+
+        private static final String SHOWING_TRANSLATION_KEY = "configmenusforge.gui.tooltip.showing";
+        private static final int[] DEFAULT_FILTERS_INDICES = Stream.of(EntryFilter.values())
+                .filter(entryFilter -> !entryFilter.searchOnly())
+                .mapToInt(Enum::ordinal)
+                .toArray();
+
+        private final int textureX;
+        private final ITextComponent message;
+        private final Predicate<IEntryData> predicate;
+        private final boolean searchOnly;
+
+        EntryFilter(int textureIndex, String translationKey, Predicate<IEntryData> predicate) {
+            this(textureIndex, translationKey, predicate, false);
+        }
+
+        EntryFilter(int textureIndex, String translationKey, Predicate<IEntryData> predicate, boolean searchOnly) {
+            this.textureX = textureIndex * 20;
+            this.message = new TranslationTextComponent(SHOWING_TRANSLATION_KEY, new TranslationTextComponent(translationKey));
+            this.predicate = predicate;
+            this.searchOnly = searchOnly;
+        }
+
+        public int getTextureX() {
+            return this.textureX;
+        }
+
+        public ITextComponent getMessage() {
+            return this.message;
+        }
+
+        public boolean test(IEntryData data, boolean empty) {
+            return this.predicate.test(data) || empty && data.category();
+        }
+
+        private boolean searchOnly() {
+            return this.searchOnly;
+        }
+
+        public static int cycle(int index, boolean search, boolean reversed) {
+            if (!search) {
+                for (int i = 0; i < DEFAULT_FILTERS_INDICES.length; i++) {
+                    if (DEFAULT_FILTERS_INDICES[i] == index) {
+                        index = i;
+                        break;
+                    }
+                }
+            }
+            int length = search ? EntryFilter.values().length : DEFAULT_FILTERS_INDICES.length;
+            int amount = reversed ? -1 : 1;
+            index = (index + amount + length) % length;
+            return search ? index : DEFAULT_FILTERS_INDICES[index];
+        }
+    }
 
     public class ConfigList extends CustomBackgroundContainerObjectSelectionList<Entry> {
         public ConfigList(List<ConfigScreen.Entry> entries) {

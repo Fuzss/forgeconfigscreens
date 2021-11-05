@@ -62,6 +62,7 @@ public class SelectConfigScreen extends Screen {
 	@Override
 	public void tick() {
 		this.searchBox.tick();
+		// makes tiny person wave when hovered
 		this.tinyJumperButton.tick();
 	}
 
@@ -137,7 +138,7 @@ public class SelectConfigScreen extends Screen {
 		this.updateButtonStatus(false);
 		this.list = new ConfigSelectionList(this, this.minecraft, this.width, this.height, 50, this.height - 60, 36, this.searchBox.getValue());
 		this.addWidget(this.list);
-		this.tinyJumperButton = this.addButton(ScreenUtil.makeModPageButton(this.width / 2 + 146 - 20, 22, this.font, this::handleComponentClicked, this::renderTooltip));
+		this.tinyJumperButton = this.addButton(ScreenUtil.makeModPageButton(this.width / 2 + 126, 22, this.font, this::handleComponentClicked, this::renderTooltip));
 		this.setInitialFocus(this.searchBox);
 	}
 
