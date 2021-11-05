@@ -29,12 +29,6 @@ public class AnimatedIconButton extends IconButton implements IScreen {
     }
 
     @Override
-    protected int getYImage(boolean pIsHovered) {
-        // no disabled state present, so everything is moved up by one height
-        return Math.max(0, super.getYImage(pIsHovered) - 1);
-    }
-
-    @Override
     public void tick() {
         if (this.isHovered() || this.tickTime > 0) {
             this.tickTime++;

@@ -62,9 +62,16 @@ public class IconButton extends Button {
     @Override
     public void renderButton(MatrixStack poseStack, int mouseX, int mouseY, float partialTicks) {
         Minecraft minecraft = Minecraft.getInstance();
-        minecraft.getTextureManager().bind(this.resourceLocation);
-        RenderSystem.enableDepthTest();
         int index = this.getYImage(this.isHovered());
+        RenderSystem.color4f(1.0F, 1.0F, 1.0F, this.alpha);
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
+        RenderSystem.enableDepthTest();
+        minecraft.getTextureManager().bind(WIDGETS_LOCATION);
+        this.blit(poseStack, this.x, this.y, 0, 46 + index * 20, this.width / 2, this.height);
+        this.blit(poseStack, this.x + this.width / 2, this.y, 200 - this.width / 2, 46 + index * 20, this.width / 2, this.height);
+        this.renderBg(poseStack, minecraft, mouseX, mouseY);
+        minecraft.getTextureManager().bind(this.resourceLocation);
         blit(poseStack, this.x, this.y, this.xTexStart, this.yTexStart + index * this.yDiffTex, this.width, this.height, this.textureWidth, this.textureHeight);
         if (this.isHovered()) {
             this.renderToolTip(poseStack, mouseX, mouseY);

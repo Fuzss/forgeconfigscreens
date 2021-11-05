@@ -91,7 +91,7 @@ dependencies {
 //    annotationProcessor 'org.spongepowered:mixin:0.8.3:processor'
 
     runtimeOnly fg.deobf("curse.maven:catalogue-459701:3399554")
-    runtimeOnly fg.deobf("curse.maven:bettermodsbutton-541584:3512910")
+    runtimeOnly fg.deobf("curse.maven:bettermodsbutton-541584:3516099")
 
     // shadow demo
 //    implementation "com.github.Ocelot5836:Sonar:ef5b90d"
