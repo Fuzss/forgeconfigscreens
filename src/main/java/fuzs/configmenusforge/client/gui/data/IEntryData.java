@@ -1,4 +1,4 @@
-package fuzs.configmenusforge.config.data;
+package fuzs.configmenusforge.client.gui.data;
 
 
 import com.electronwill.nightconfig.core.CommentedConfig;
@@ -6,11 +6,10 @@ import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import fuzs.configmenusforge.client.gui.data.EntryData;
-import net.minecraft.util.text.IFormattableTextComponent;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TextFormatting;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.fml.config.ModConfig;
 
@@ -27,12 +26,12 @@ public interface IEntryData {
     @Nullable
     String getComment();
 
-    ITextComponent getTitle();
+    Component getTitle();
 
     /**
      * @return title or colored title for search
      */
-    default ITextComponent getDisplayTitle(String searchHighlight) {
+    default Component getDisplayTitle(String searchHighlight) {
         if (searchHighlight != null && !searchHighlight.isEmpty()) {
             List<Integer> indices = this.getSearchIndices(this.getSearchableTitle(), searchHighlight);
             if (!indices.isEmpty()) {
@@ -45,12 +44,12 @@ public interface IEntryData {
     /**
      * title used in search results highlighting current query
      */
-    default ITextComponent getColoredTitle(String title, int length, List<Integer> indices) {
-        IFormattableTextComponent component = new StringTextComponent(title.substring(0, indices.get(0))).withStyle(TextFormatting.GRAY);
+    private Component getColoredTitle(String title, int length, List<Integer> indices) {
+        MutableComponent component = new TextComponent(title.substring(0, indices.get(0))).withStyle(ChatFormatting.GRAY);
         for (int i = 0, indicesSize = indices.size(); i < indicesSize; i++) {
             int start = indices.get(i);
             int end = start + length;
-            component.append(new StringTextComponent(title.substring(start, end)).withStyle(TextFormatting.WHITE));
+            component.append(new TextComponent(title.substring(start, end)).withStyle(ChatFormatting.WHITE));
             int nextStart;
             int j = i;
             if (++j < indicesSize) {
@@ -58,7 +57,7 @@ public interface IEntryData {
             } else {
                 nextStart = title.length();
             }
-            component.append(new StringTextComponent(title.substring(end, nextStart)).withStyle(TextFormatting.GRAY));
+            component.append(new TextComponent(title.substring(end, nextStart)).withStyle(ChatFormatting.GRAY));
         }
         return component;
     }
@@ -66,7 +65,7 @@ public interface IEntryData {
     /**
      * all starting indices of query for highlighting text
      */
-    default List<Integer> getSearchIndices(String title, String query) {
+    private List<Integer> getSearchIndices(String title, String query) {
         List<Integer> indices = Lists.newLinkedList();
         if (!query.isEmpty()) {
             int index = title.indexOf(query);
@@ -128,18 +127,16 @@ public interface IEntryData {
     }
 
     static boolean checkInvalid(ModConfig config) {
-        return config.getConfigData() == null || config.getSpec() == null || !config.getSpec().isLoaded();
+        return config.getConfigData() == null || !(config.getSpec() instanceof ForgeConfigSpec spec) || !spec.isLoaded();
     }
 
-    static void makeValueToDataMap(ForgeConfigSpec spec, UnmodifiableConfig values, CommentedConfig comments, Map<Object, IEntryData> allData) {
+    private static void makeValueToDataMap(ForgeConfigSpec spec, UnmodifiableConfig values, CommentedConfig comments, Map<Object, IEntryData> allData) {
         values.valueMap().forEach((path, value) -> {
-            if (value instanceof UnmodifiableConfig) {
-                UnmodifiableConfig category = (UnmodifiableConfig) value;
+            if (value instanceof UnmodifiableConfig category) {
                 final EntryData.CategoryEntryData data = new EntryData.CategoryEntryData(path, category, comments.getComment(path));
                 allData.put(category, data);
                 makeValueToDataMap(spec, category, (CommentedConfig) comments.valueMap().get(path), allData);
-            } else if (value instanceof ForgeConfigSpec.ConfigValue<?>) {
-                ForgeConfigSpec.ConfigValue<?> configValue = (ForgeConfigSpec.ConfigValue<?>) value;
+            } else if (value instanceof ForgeConfigSpec.ConfigValue<?> configValue) {
                 final EntryData.ConfigEntryData<?> data = new EntryData.ConfigEntryData<>(path, configValue, spec.getRaw(configValue.getPath()));
                 allData.put(configValue, data);
             }

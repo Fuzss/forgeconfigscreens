@@ -1,7 +1,7 @@
 package fuzs.configmenusforge.lib.proxy;
 
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.world.entity.player.Player;
 
 /**
  * proxy base class
@@ -11,7 +11,7 @@ public interface IProxy {
     /**
      * @return client player from Minecraft singleton when on physical client, otherwise null
      */
-    PlayerEntity getClientPlayer();
+    Player getClientPlayer();
 
     /**
      * @return Minecraft singleton instance on physical client, otherwise null
@@ -22,5 +22,4 @@ public interface IProxy {
      * @return current game server, null when not in a world
      */
     MinecraftServer getGameServer();
-
 }

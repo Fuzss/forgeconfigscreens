@@ -5,10 +5,9 @@ import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.google.common.collect.Iterators;
 import fuzs.configmenusforge.client.gui.screens.ConfigScreen;
 import fuzs.configmenusforge.client.gui.util.ScreenUtil;
-import fuzs.configmenusforge.config.data.IEntryData;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.client.resources.language.I18n;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraftforge.common.ForgeConfigSpec;
 
 import javax.annotation.Nullable;
@@ -19,9 +18,9 @@ public class EntryData implements IEntryData {
 
     private final String path;
     private final String comment;
-    private final ITextComponent title;
+    private final Component title;
 
-    EntryData(String path, String comment, ITextComponent title) {
+    EntryData(String path, String comment, Component title) {
         this.path = path;
         this.comment = comment;
         this.title = title;
@@ -39,7 +38,7 @@ public class EntryData implements IEntryData {
     }
 
     @Override
-    public ITextComponent getTitle() {
+    public Component getTitle() {
         return this.title;
     }
 
@@ -124,9 +123,9 @@ public class EntryData implements IEntryData {
         private static <T> boolean listSafeEquals(T o1, T o2) {
             // attempts to solve an issue where types of lists won't match when one is read from file
             // (due to enum being converted to string, long to int)
-            if (o1 instanceof List<?> && o2 instanceof List<?>) {
-                final Stream<String> stream1 = ((List<?>) o1).stream().map(o -> o instanceof Enum<?> ? ((Enum<?>) o).name() : o.toString());
-                final Stream<String> stream2 = ((List<?>) o2).stream().map(o -> o instanceof Enum<?> ? ((Enum<?>) o).name() : o.toString());
+            if (o1 instanceof List<?> list1 && o2 instanceof List<?> list2) {
+                final Stream<String> stream1 = list1.stream().map(o -> o instanceof Enum<?> e ? e.name() : o.toString());
+                final Stream<String> stream2 = list2.stream().map(o -> o instanceof Enum<?> e ? e.name() : o.toString());
                 return Iterators.elementsEqual(stream1.iterator(), stream2.iterator());
             }
             return o1.equals(o2);
@@ -177,9 +176,9 @@ public class EntryData implements IEntryData {
          * @param valueSpec   the associated value spec
          * @return a readable label string
          */
-        private static ITextComponent createLabel(String path, ForgeConfigSpec.ConfigValue<?> configValue, ForgeConfigSpec.ValueSpec valueSpec) {
+        private static Component createLabel(String path, ForgeConfigSpec.ConfigValue<?> configValue, ForgeConfigSpec.ValueSpec valueSpec) {
             if (valueSpec.getTranslationKey() != null && I18n.exists(valueSpec.getTranslationKey())) {
-                return new TranslationTextComponent(valueSpec.getTranslationKey());
+                return new TranslatableComponent(valueSpec.getTranslationKey());
             }
             return ScreenUtil.formatLabel(path);
         }

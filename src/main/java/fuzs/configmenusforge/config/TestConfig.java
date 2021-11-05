@@ -1,8 +1,8 @@
 package fuzs.configmenusforge.config;
 
 import com.google.common.collect.Lists;
-import net.minecraft.util.Direction;
-import net.minecraft.util.text.TextFormatting;
+import net.minecraft.ChatFormatting;
+import net.minecraft.core.Direction;
 import net.minecraftforge.common.ForgeConfigSpec;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -15,7 +15,7 @@ public class TestConfig {
     public final ForgeConfigSpec.IntValue intValue;
     public final ForgeConfigSpec.DoubleValue doubleValue;
     public final ForgeConfigSpec.LongValue longValue;
-    public final ForgeConfigSpec.EnumValue<TextFormatting> enumValue;
+    public final ForgeConfigSpec.EnumValue<ChatFormatting> enumValue;
     public final ForgeConfigSpec.ConfigValue<List<? extends Boolean>> booleanListValue;
     public final ForgeConfigSpec.ConfigValue<List<? extends Integer>> intListValue;
     public final ForgeConfigSpec.ConfigValue<List<? extends Long>> longListValue;
@@ -30,7 +30,7 @@ public class TestConfig {
         this.longValue = builder.comment("This is a Long value").defineInRange("long_value", 2L, 0L, 10L);
         this.doubleValue = builder.comment("This is a Double value").defineInRange("double_Value", 1.0, 0.0, 10.0);
         this.stringValue = builder.comment("This is an String value").define("stringValue", "YEP");
-        this.enumValue = builder.comment("This is an Enum value").defineEnum("enumValue", TextFormatting.WHITE);
+        this.enumValue = builder.comment("This is an Enum value").defineEnum("enumValue", ChatFormatting.WHITE);
         builder.comment("YEP").push("list_properties");
         this.booleanListValue = builder.comment("This is a List of Boolean values").defineList("booleanListValue", Lists.newArrayList(true, true, false, true, false), o -> true);
         this.intListValue = builder.comment("This is a List of Integer values").defineList("intListValue", Lists.newArrayList(0, 1, 2, 3, 4, 5), o -> true);

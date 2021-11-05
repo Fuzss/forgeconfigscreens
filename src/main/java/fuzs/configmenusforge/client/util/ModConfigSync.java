@@ -1,18 +1,16 @@
 package fuzs.configmenusforge.client.util;
 
-import com.electronwill.nightconfig.toml.TomlFormat;
+import fuzs.configmenusforge.lib.core.ReflectionHelper;
+import net.minecraftforge.fml.config.IConfigEvent;
 import net.minecraftforge.fml.config.ModConfig;
+import net.minecraftforge.fml.event.config.ModConfigEvent;
 
-import java.io.ByteArrayInputStream;
+import java.lang.reflect.Method;
 
 public class ModConfigSync {
+    private static final Method FIRE_EVENT_METHOD = ReflectionHelper.getDeclaredMethod(ModConfig.class, "fireEvent", IConfigEvent.class);
 
     public static void fireReloadEvent(ModConfig config) {
-        ReflectionHelper.invoke(ReflectionHelper.FIRE_EVENT_METHOD, config, ReflectionHelper.newInstance(ReflectionHelper.MOD_CONFIG_RELOADING_CONSTRUCTOR, config));
-    }
-
-    public static void acceptSyncedConfig(ModConfig config, byte[] bytes) {
-        ReflectionHelper.invoke(ReflectionHelper.SET_CONFIG_DATA_METHOD, config, TomlFormat.instance().createParser().parse(new ByteArrayInputStream(bytes)));
-        fireReloadEvent(config);
+        ReflectionHelper.invoke(FIRE_EVENT_METHOD, config, new ModConfigEvent.Reloading(config));
     }
 }

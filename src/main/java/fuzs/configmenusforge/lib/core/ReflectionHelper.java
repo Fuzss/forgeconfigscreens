@@ -1,8 +1,4 @@
-package fuzs.configmenusforge.client.util;
-
-import com.electronwill.nightconfig.core.CommentedConfig;
-import net.minecraftforge.fml.config.ConfigTracker;
-import net.minecraftforge.fml.config.ModConfig;
+package fuzs.configmenusforge.lib.core;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Constructor;
@@ -11,15 +7,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Optional;
 
-@SuppressWarnings({"unchecked", "SameParameterValue"})
+@SuppressWarnings("unchecked")
 public class ReflectionHelper {
-    public static final Field FILE_MAP_FIELD = getDeclaredField(ConfigTracker.class, "fileMap");
-    public static final Field CONFIG_SETS_FIELD = getDeclaredField(ConfigTracker.class, "configSets");
-    public static final Method SET_CONFIG_DATA_METHOD = getDeclaredMethod(ModConfig.class, "setConfigData", CommentedConfig.class);
-    public static final Method FIRE_EVENT_METHOD = getDeclaredMethod(ModConfig.class, "fireEvent", ModConfig.ModConfigEvent.class);
-    public static final Constructor<ModConfig.Reloading> MOD_CONFIG_RELOADING_CONSTRUCTOR = getDeclaredConstructor(ModConfig.Reloading.class, ModConfig.class);
-
-    private static Field getDeclaredField(Class<?> clazz, String name) {
+    public static Field getDeclaredField(Class<?> clazz, String name) {
         try {
             Field field = clazz.getDeclaredField(name);
             field.setAccessible(true);
@@ -29,7 +19,7 @@ public class ReflectionHelper {
         return null;
     }
 
-    private static Method getDeclaredMethod(Class<?> clazz, String name, Class<?>... parameterTypes) {
+    public static Method getDeclaredMethod(Class<?> clazz, String name, Class<?>... parameterTypes) {
         try {
             Method method = clazz.getDeclaredMethod(name, parameterTypes);
             method.setAccessible(true);
@@ -39,7 +29,7 @@ public class ReflectionHelper {
         return null;
     }
 
-    private static <T> Constructor<T> getDeclaredConstructor(Class<?> clazz, Class<?>... parameterTypes) {
+    public static <T> Constructor<T> getDeclaredConstructor(Class<?> clazz, Class<?>... parameterTypes) {
         try {
             Constructor<T> constructor = (Constructor<T>) clazz.getDeclaredConstructor(parameterTypes);
             constructor.setAccessible(true);

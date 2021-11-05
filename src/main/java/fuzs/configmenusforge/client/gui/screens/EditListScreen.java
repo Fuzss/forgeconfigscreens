@@ -2,20 +2,23 @@ package fuzs.configmenusforge.client.gui.screens;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
 import fuzs.configmenusforge.client.gui.components.CustomBackgroundContainerObjectSelectionList;
 import fuzs.configmenusforge.client.gui.util.ScreenUtil;
 import fuzs.configmenusforge.client.gui.widget.ConfigEditBox;
 import fuzs.configmenusforge.client.gui.widget.IconButton;
-import net.minecraft.client.gui.DialogTexts;
-import net.minecraft.client.gui.IGuiEventListener;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.button.Button;
-import net.minecraft.client.gui.widget.list.AbstractOptionList;
-import net.minecraft.util.IReorderingProcessor;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.ContainerObjectSelectionList;
+import net.minecraft.client.gui.components.events.GuiEventListener;
+import net.minecraft.client.gui.narration.NarratableEntry;
+import net.minecraft.client.gui.narration.NarratedElementType;
+import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.CommonComponents;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.FormattedCharSequence;
 import org.apache.commons.lang3.mutable.MutableObject;
 
 import javax.annotation.Nullable;
@@ -38,10 +41,10 @@ public class EditListScreen extends Screen {
     @Nullable
     private ConfigEditBox activeTextField;
     @Nullable
-    private List<? extends IReorderingProcessor> activeTooltip;
+    private List<? extends FormattedCharSequence> activeTooltip;
     private int tooltipTicks;
 
-    public EditListScreen(Screen lastScreen, ITextComponent title, ResourceLocation background, List<String> listValue, Predicate<String> validator, Consumer<List<String>> onSave) {
+    public EditListScreen(Screen lastScreen, Component title, ResourceLocation background, List<String> listValue, Predicate<String> validator, Consumer<List<String>> onSave) {
         super(title);
         this.lastScreen = lastScreen;
         this.background = background;
@@ -61,20 +64,20 @@ public class EditListScreen extends Screen {
     protected void init() {
         this.list = new EditList(this.values);
         this.addWidget(this.list);
-        this.doneButton = this.addButton(new Button(this.width / 2 - 154, this.height - 28, 150, 20, DialogTexts.GUI_DONE, button -> {
+        this.doneButton = this.addRenderableWidget(new Button(this.width / 2 - 154, this.height - 28, 150, 20, CommonComponents.GUI_DONE, button -> {
             this.onSave.accept(this.values.stream()
                     .map(MutableObject::getValue)
                     .collect(Collectors.toList()));
             this.minecraft.setScreen(this.lastScreen);
         }));
-        this.addButton(new Button(this.width / 2 + 4, this.height - 28, 150, 20, DialogTexts.GUI_CANCEL, button -> {
+        this.addRenderableWidget(new Button(this.width / 2 + 4, this.height - 28, 150, 20, CommonComponents.GUI_CANCEL, button -> {
             this.minecraft.setScreen(this.lastScreen);
         }));
     }
 
     @Override
-    public void render(MatrixStack poseStack, int mouseX, int mouseY, float partialTicks) {
-        List<? extends IReorderingProcessor> lastTooltip = this.activeTooltip;
+    public void render(PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
+        List<? extends FormattedCharSequence> lastTooltip = this.activeTooltip;
         this.activeTooltip = null;
         ScreenUtil.renderCustomBackground(this, this.background, 0);
         this.list.render(poseStack, mouseX, mouseY, partialTicks);
@@ -146,7 +149,7 @@ public class EditListScreen extends Screen {
         }
     }
 
-    public static abstract class EditListEntry extends AbstractOptionList.Entry<EditListEntry> {
+    public static abstract class EditListEntry extends ContainerObjectSelectionList.Entry<EditListEntry> {
 
     }
 
@@ -154,7 +157,7 @@ public class EditListScreen extends Screen {
         private final Button addButton;
 
         public AddEntry(EditList list, List<MutableObject<String>> values) {
-            final List<IReorderingProcessor> tooltip = EditListScreen.this.minecraft.font.split(new TranslationTextComponent("configmenusforge.gui.tooltip.add"), 200);
+            final List<FormattedCharSequence> tooltip = EditListScreen.this.minecraft.font.split(new TranslatableComponent("configmenusforge.gui.tooltip.add"), 200);
             this.addButton = new IconButton(0, 0, 20, 20, 80, 0, ConfigScreen.ICONS_LOCATION, button -> {
                 MutableObject<String> holder = new MutableObject<>("");
                 values.add(holder);
@@ -167,15 +170,29 @@ public class EditListScreen extends Screen {
         }
 
         @Override
-        public void render(MatrixStack poseStack, int index, int entryTop, int entryLeft, int rowWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float partialTicks) {
+        public void render(PoseStack poseStack, int index, int entryTop, int entryLeft, int rowWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float partialTicks) {
             this.addButton.x = entryLeft + rowWidth - 21;
             this.addButton.y = entryTop;
             this.addButton.render(poseStack, mouseX, mouseY, partialTicks);
         }
 
         @Override
-        public List<? extends IGuiEventListener> children() {
+        public List<? extends GuiEventListener> children() {
             return ImmutableList.of(this.addButton);
+        }
+
+        @Override
+        public List<? extends NarratableEntry> narratables() {
+            return ImmutableList.of(new NarratableEntry() {
+                @Override
+                public NarratableEntry.NarrationPriority narrationPriority() {
+                    return NarratableEntry.NarrationPriority.HOVERED;
+                }
+
+                @Override
+                public void updateNarration(NarrationElementOutput output) {
+                }
+            }, this.addButton);
         }
     }
 
@@ -211,7 +228,7 @@ public class EditListScreen extends Screen {
             this.textField.setValue(holder.getValue());
             this.textField.setFocus(withFocus);
 
-            final List<IReorderingProcessor> tooltip = EditListScreen.this.minecraft.font.split(new TranslationTextComponent("configmenusforge.gui.tooltip.remove"), 200);
+            final List<FormattedCharSequence> tooltip = EditListScreen.this.minecraft.font.split(new TranslatableComponent("configmenusforge.gui.tooltip.remove"), 200);
             this.deleteButton = new IconButton(0, 0, 20, 20, 100, 0, ConfigScreen.ICONS_LOCATION, button -> {
                 EditListScreen.this.values.remove(holder);
                 list.removeEntry(this);
@@ -224,7 +241,7 @@ public class EditListScreen extends Screen {
         }
 
         @Override
-        public void render(MatrixStack poseStack, int index, int entryTop, int entryLeft, int rowWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float partialTicks) {
+        public void render(PoseStack poseStack, int index, int entryTop, int entryLeft, int rowWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float partialTicks) {
             this.textField.x = entryLeft;
             this.textField.y = entryTop + 1;
             this.textField.render(poseStack, mouseX, mouseY, partialTicks);
@@ -234,8 +251,23 @@ public class EditListScreen extends Screen {
         }
 
         @Override
-        public List<? extends IGuiEventListener> children() {
+        public List<? extends GuiEventListener> children() {
             return ImmutableList.of(this.textField, this.deleteButton);
+        }
+
+        @Override
+        public List<? extends NarratableEntry> narratables() {
+            return ImmutableList.of(new NarratableEntry() {
+                @Override
+                public NarratableEntry.NarrationPriority narrationPriority() {
+                    return NarratableEntry.NarrationPriority.HOVERED;
+                }
+
+                @Override
+                public void updateNarration(NarrationElementOutput output) {
+                    output.add(NarratedElementType.TITLE, EditEntry.this.holder.getValue());
+                }
+            }, EditEntry.this.textField, EditEntry.this.deleteButton);
         }
     }
 }

@@ -3,23 +3,20 @@ package fuzs.configmenusforge.network.message;
 import fuzs.configmenusforge.client.gui.screens.SelectConfigScreen;
 import fuzs.configmenusforge.lib.network.message.Message;
 import net.minecraft.client.Minecraft;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.network.PacketBuffer;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.entity.player.Player;
 
 public class S2CGrantPermissionsMessage implements Message {
 
     public S2CGrantPermissionsMessage() {
-
     }
 
     @Override
-    public void write(PacketBuffer buf) {
-
+    public void write(FriendlyByteBuf buf) {
     }
 
     @Override
-    public void read(PacketBuffer buf) {
-
+    public void read(FriendlyByteBuf buf) {
     }
 
     @Override
@@ -28,10 +25,11 @@ public class S2CGrantPermissionsMessage implements Message {
     }
 
     private static class GrantPermissionsHandler extends PacketHandler<S2CGrantPermissionsMessage> {
+
         @Override
-        public void handle(S2CGrantPermissionsMessage packet, PlayerEntity player, Object gameInstance) {
-            if (((Minecraft) gameInstance).screen instanceof SelectConfigScreen) {
-                ((SelectConfigScreen) ((Minecraft) gameInstance).screen).setServerPermissions();
+        public void handle(S2CGrantPermissionsMessage packet, Player player, Object gameInstance) {
+            if (((Minecraft) gameInstance).screen instanceof SelectConfigScreen screen) {
+                screen.setServerPermissions();
             }
         }
     }

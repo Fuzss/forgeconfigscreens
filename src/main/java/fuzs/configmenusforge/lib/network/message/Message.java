@@ -1,7 +1,7 @@
 package fuzs.configmenusforge.lib.network.message;
 
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.network.PacketBuffer;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.entity.player.Player;
 
 /**
  * network message template
@@ -12,21 +12,20 @@ public interface Message {
      * writes message data to buffer
      * @param buf network data byte buffer
      */
-    void write(final PacketBuffer buf);
+    void write(final FriendlyByteBuf buf);
 
     /**
      * reads message data from buffer
      * @param buf network data byte buffer
      */
-    void read(final PacketBuffer buf);
+    void read(final FriendlyByteBuf buf);
 
     /**
      * handles message on receiving side
      * @param player       server or client player
      * @param gameInstance  server or client instance
      */
-    default void handle(PlayerEntity player, Object gameInstance) {
-
+    default void handle(Player player, Object gameInstance) {
         this.makeHandler().handle(this, player, gameInstance);
     }
 
@@ -49,8 +48,6 @@ public interface Message {
          * @param player       server or client player
          * @param gameInstance  server or client instance
          */
-        public abstract void handle(T packet, PlayerEntity player, Object gameInstance);
-
+        public abstract void handle(T packet, Player player, Object gameInstance);
     }
-
 }

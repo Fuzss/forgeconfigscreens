@@ -3,20 +3,20 @@ package fuzs.configmenusforge.lib.network;
 import fuzs.configmenusforge.ConfigMenusForge;
 import fuzs.configmenusforge.lib.network.message.Message;
 import net.minecraft.client.Minecraft;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.network.IPacket;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.RegistryKey;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.fml.LogicalSide;
-import net.minecraftforge.fml.LogicalSidedProvider;
-import net.minecraftforge.fml.network.NetworkDirection;
-import net.minecraftforge.fml.network.NetworkEvent;
-import net.minecraftforge.fml.network.NetworkRegistry;
-import net.minecraftforge.fml.network.simple.SimpleChannel;
+import net.minecraftforge.fmllegacy.LogicalSidedProvider;
+import net.minecraftforge.fmllegacy.network.NetworkDirection;
+import net.minecraftforge.fmllegacy.network.NetworkEvent;
+import net.minecraftforge.fmllegacy.network.NetworkRegistry;
+import net.minecraftforge.fmllegacy.network.simple.SimpleChannel;
 
 import javax.annotation.Nullable;
 import java.util.Objects;
@@ -38,9 +38,8 @@ public enum NetworkHandler {
     private static final String PROTOCOL_VERSION = Integer.toString(1);
     /**
      * channel for sending messages
-     * TODO make private when old handler is removed
      */
-    public static final SimpleChannel CHANNEL = NetworkRegistry.ChannelBuilder
+    private static final SimpleChannel CHANNEL = NetworkRegistry.ChannelBuilder
             .named(new ResourceLocation(ConfigMenusForge.MOD_ID, "main"))
             .networkProtocolVersion(() -> PROTOCOL_VERSION)
             .clientAcceptedVersions(PROTOCOL_VERSION::equals)
@@ -62,8 +61,8 @@ public enum NetworkHandler {
      * @param <T> message implementation
      */
     public <T extends Message> void register(Class<T> clazz, Supplier<T> supplier, NetworkDirection direction) {
-        BiConsumer<T, PacketBuffer> encode = Message::write;
-        Function<PacketBuffer, T> decode = buf -> {
+        BiConsumer<T, FriendlyByteBuf> encode = Message::write;
+        Function<FriendlyByteBuf, T> decode = buf -> {
             T message = supplier.get();
             message.read(buf);
             return message;
@@ -74,7 +73,7 @@ public enum NetworkHandler {
             if (ctx.getDirection().getReceptionSide() != receptionSide) {
                 throw new IllegalStateException(String.format("Received message on wrong side, expected %s, was %s", receptionSide, ctx.getDirection().getReceptionSide()));
             }
-            PlayerEntity player;
+            Player player;
             if (receptionSide.isClient()) {
                 player = ConfigMenusForge.PROXY.getClientPlayer();
             } else {
@@ -100,7 +99,7 @@ public enum NetworkHandler {
      * @param message message to send
      * @param player client player to send to
      */
-    public void sendTo(Message message, ServerPlayerEntity player) {
+    public void sendTo(Message message, ServerPlayer player) {
         player.connection.send(toClientboundPacket(message));
     }
 
@@ -117,9 +116,9 @@ public enum NetworkHandler {
      * @param message message to send
      * @param exclude client to exclude
      */
-    public void sendToAllExcept(Message message, ServerPlayerEntity exclude) {
-        final IPacket<?> packet = toClientboundPacket(message);
-        for (ServerPlayerEntity player : ConfigMenusForge.PROXY.getGameServer().getPlayerList().getPlayers()) {
+    public void sendToAllExcept(Message message, ServerPlayer exclude) {
+        final Packet<?> packet = toClientboundPacket(message);
+        for (ServerPlayer player : ConfigMenusForge.PROXY.getGameServer().getPlayerList().getPlayers()) {
             if (player != exclude) {
                 player.connection.send(packet);
             }
@@ -132,7 +131,7 @@ public enum NetworkHandler {
      * @param pos source position
      * @param level dimension key provider level
      */
-    public void sendToAllNear(Message message, BlockPos pos, World level) {
+    public void sendToAllNear(Message message, BlockPos pos, Level level) {
         this.sendToAllNearExcept(message, null, pos.getX(), pos.getY(), pos.getZ(), 64.0, level);
     }
 
@@ -146,7 +145,7 @@ public enum NetworkHandler {
      * @param distance distance from source to receive message
      * @param level dimension key provider level
      */
-    public void sendToAllNearExcept(Message message, @Nullable ServerPlayerEntity exclude, double posX, double posY, double posZ, double distance, World level) {
+    public void sendToAllNearExcept(Message message, @Nullable ServerPlayer exclude, double posX, double posY, double posZ, double distance, Level level) {
         ConfigMenusForge.PROXY.getGameServer().getPlayerList().broadcast(exclude, posX, posY, posZ, distance, level.dimension(), toClientboundPacket(message));
     }
 
@@ -155,7 +154,7 @@ public enum NetworkHandler {
      * @param message message to send
      * @param level dimension key provider level
      */
-    public void sendToDimension(Message message, World level) {
+    public void sendToDimension(Message message, Level level) {
         this.sendToDimension(message, level.dimension());
     }
 
@@ -164,7 +163,7 @@ public enum NetworkHandler {
      * @param message message to send
      * @param dimension dimension to send message in
      */
-    public void sendToDimension(Message message, RegistryKey<World> dimension) {
+    public void sendToDimension(Message message, ResourceKey<Level> dimension) {
         ConfigMenusForge.PROXY.getGameServer().getPlayerList().broadcastAll(toClientboundPacket(message), dimension);
     }
 
@@ -172,7 +171,7 @@ public enum NetworkHandler {
      * @param message message to create packet from
      * @return      packet for message
      */
-    private static IPacket<?> toServerboundPacket(Message message) {
+    private static Packet<?> toServerboundPacket(Message message) {
         return CHANNEL.toVanillaPacket(message, NetworkDirection.PLAY_TO_SERVER);
     }
 
@@ -180,8 +179,7 @@ public enum NetworkHandler {
      * @param message message to create packet from
      * @return      packet for message
      */
-    private static IPacket<?> toClientboundPacket(Message message) {
+    private static Packet<?> toClientboundPacket(Message message) {
         return CHANNEL.toVanillaPacket(message, NetworkDirection.PLAY_TO_CLIENT);
     }
-
 }

@@ -1,25 +1,25 @@
 package fuzs.configmenusforge.client.gui.widget;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
-import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.util.text.StringTextComponent;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.network.chat.TextComponent;
 
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-public class ConfigEditBox extends TextFieldWidget {
+public class ConfigEditBox extends EditBox {
     private final Supplier<ConfigEditBox> getActiveTextField;
     private final Consumer<ConfigEditBox> setActiveTextField;
     private boolean bordered = true;
     private boolean invalid;
 
-    public ConfigEditBox(FontRenderer font, int x, int y, int width, int height) {
+    public ConfigEditBox(Font font, int x, int y, int width, int height) {
         this(font, x, y, width, height, () -> null, activeTextField -> {});
     }
 
-    public ConfigEditBox(FontRenderer font, int x, int y, int width, int height, Supplier<ConfigEditBox> getActiveTextField, Consumer<ConfigEditBox> setActiveTextField) {
-        super(font, x, y, width, height, StringTextComponent.EMPTY);
+    public ConfigEditBox(Font font, int x, int y, int width, int height, Supplier<ConfigEditBox> getActiveTextField, Consumer<ConfigEditBox> setActiveTextField) {
+        super(font, x, y, width, height, TextComponent.EMPTY);
         this.getActiveTextField = getActiveTextField;
         this.setActiveTextField = setActiveTextField;
     }
@@ -47,7 +47,7 @@ public class ConfigEditBox extends TextFieldWidget {
     }
 
     @Override
-    public void renderButton(MatrixStack poseStack, int mouseX, int mouseY, float partialTicks) {
+    public void renderButton(PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
         super.renderButton(poseStack, mouseX, mouseY, partialTicks);
         if (this.invalid && this.visible && this.bordered) {
             final int color = 16711680 | 255 << 24;

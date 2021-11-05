@@ -1,30 +1,31 @@
 package fuzs.configmenusforge.client.handler;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screen.OptionsScreen;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.ExtensionPoint;
+import net.minecraft.client.gui.screens.OptionsScreen;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.loading.moddiscovery.ModInfo;
+import net.minecraftforge.fmlclient.ConfigGuiHandler;
+import net.minecraftforge.forgespi.language.IModInfo;
 
 import java.util.Optional;
 
 public class ConfigFactoryHandler {
 
     public static void registerConfigFactories() {
-        ModList.get().getMods().stream().map(ModInfo::getModId).map(ModList.get()::getModContainerById).filter(Optional::isPresent).map(Optional::get).forEach(container -> {
-            if (container.getCustomExtension(ExtensionPoint.CONFIGGUIFACTORY).isPresent()) return;
+        ModList.get().getMods().stream().map(IModInfo::getModId).map(ModList.get()::getModContainerById).filter(Optional::isPresent).map(Optional::get).forEach(container -> {
+            if (container.getCustomExtension(ConfigGuiHandler.ConfigGuiFactory.class).isPresent()) return;
             final ResourceLocation background = Optional.ofNullable(container.getModInfo() instanceof ModInfo ? (ModInfo) container.getModInfo() : null).flatMap(ConfigFactoryHandler::getCustomBackground).orElse(Screen.BACKGROUND_LOCATION);
             ConfigScreenFactory.createConfigScreen(container.getModId(), container.getModInfo().getDisplayName(), background).ifPresent(configScreen -> {
-                container.registerExtensionPoint(ExtensionPoint.CONFIGGUIFACTORY, () -> (mc, screen) -> configScreen.apply(screen));
+                container.registerExtensionPoint(ConfigGuiHandler.ConfigGuiFactory.class, () -> new ConfigGuiHandler.ConfigGuiFactory((mc, screen) -> configScreen.apply(screen)));
             });
         });
     }
 
     public static void registerMinecraftConfig() {
         ModList.get().getModContainerById("minecraft").ifPresent(container -> {
-            container.registerExtensionPoint(ExtensionPoint.CONFIGGUIFACTORY, () -> (mc, screen) -> new OptionsScreen(screen, Minecraft.getInstance().options));
+            container.registerExtensionPoint(ConfigGuiHandler.ConfigGuiFactory.class, () -> new ConfigGuiHandler.ConfigGuiFactory((mc, screen) -> new OptionsScreen(screen, Minecraft.getInstance().options)));
         });
     }
 

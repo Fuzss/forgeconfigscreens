@@ -1,15 +1,16 @@
 package fuzs.configmenusforge.client.gui.screens;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
 import fuzs.configmenusforge.client.gui.components.CustomBackgroundObjectSelectionList;
 import fuzs.configmenusforge.client.gui.util.ScreenUtil;
-import net.minecraft.client.gui.AbstractGui;
-import net.minecraft.client.gui.DialogTexts;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.button.Button;
-import net.minecraft.client.gui.widget.list.AbstractList;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.client.gui.GuiComponent;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.ObjectSelectionList;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.CommonComponents;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.resources.ResourceLocation;
 
 import javax.annotation.Nullable;
 import java.util.Comparator;
@@ -30,7 +31,7 @@ public class EditEnumScreen extends Screen {
 	private final Consumer<Enum<?>> onSave;
 	private EnumList list;
 
-	public EditEnumScreen(Screen lastScreen, ITextComponent title, ResourceLocation background, Enum<?> value, Enum<?>[] allValues, Predicate<Enum<?>> validator, Consumer<Enum<?>> onSave) {
+	public EditEnumScreen(Screen lastScreen, Component title, ResourceLocation background, Enum<?> value, Enum<?>[] allValues, Predicate<Enum<?>> validator, Consumer<Enum<?>> onSave) {
 		super(title);
 		this.lastScreen = lastScreen;
 		this.background = background;
@@ -50,11 +51,11 @@ public class EditEnumScreen extends Screen {
 		this.minecraft.keyboardHandler.setSendRepeatsToGui(true);
 		this.list = new EnumList();
 		this.addWidget(this.list);
-		this.addButton(new Button(this.width / 2 - 154, this.height - 28, 150, 20, DialogTexts.GUI_DONE, (button) -> {
+		this.addRenderableWidget(new Button(this.width / 2 - 154, this.height - 28, 150, 20, CommonComponents.GUI_DONE, (button) -> {
 			this.onSave.accept(this.value);
 			this.minecraft.setScreen(this.lastScreen);
 		}));
-		this.addButton(new Button(this.width / 2 + 4, this.height - 28, 150, 20, DialogTexts.GUI_CANCEL, (button) -> {
+		this.addRenderableWidget(new Button(this.width / 2 + 4, this.height - 28, 150, 20, CommonComponents.GUI_CANCEL, (button) -> {
 			this.minecraft.setScreen(this.lastScreen);
 		}));
 		this.list.setSelected(this.list.children().stream().filter((entry) -> {
@@ -63,7 +64,7 @@ public class EditEnumScreen extends Screen {
 	}
 
 	@Override
-	public void render(MatrixStack poseStack, int mouseX, int mouseY, float partialTicks) {
+	public void render(PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
 		ScreenUtil.renderCustomBackground(this, this.background, 0);
 		this.list.render(poseStack, mouseX, mouseY, partialTicks);
 		drawCenteredString(poseStack, this.font, this.title, this.width / 2, 14, 16777215);
@@ -104,9 +105,9 @@ public class EditEnumScreen extends Screen {
 			return 260;
 		}
 
-		private class Entry extends AbstractList.AbstractListEntry<EnumList.Entry> {
+		private class Entry extends ObjectSelectionList.Entry<EnumList.Entry> {
 			final Enum<?> value;
-			private final ITextComponent name;
+			private final Component name;
 
 			public Entry(Enum<?> value) {
 				this.value = value;
@@ -114,8 +115,13 @@ public class EditEnumScreen extends Screen {
 			}
 
 			@Override
-			public void render(MatrixStack poseStack, int index, int entryTop, int entryLeft, int rowWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float partialTicks) {
-				AbstractGui.drawCenteredString(poseStack, EditEnumScreen.this.font, this.name, entryLeft + rowWidth / 2, entryTop + 2, 16777215);
+			public Component getNarration() {
+				return new TranslatableComponent("narrator.select", this.name);
+			}
+
+			@Override
+			public void render(PoseStack poseStack, int index, int entryTop, int entryLeft, int rowWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float partialTicks) {
+				GuiComponent.drawCenteredString(poseStack, EditEnumScreen.this.font, this.name, entryLeft + rowWidth / 2, entryTop + 2, 16777215);
 			}
 
 			@Override
