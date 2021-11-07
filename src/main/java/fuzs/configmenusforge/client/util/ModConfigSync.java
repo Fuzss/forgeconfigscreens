@@ -10,7 +10,7 @@ import java.lang.reflect.Method;
 public class ModConfigSync {
     private static final Method FIRE_EVENT_METHOD = ReflectionHelper.getDeclaredMethod(ModConfig.class, "fireEvent", IConfigEvent.class);
 
-    public static void fireReloadEvent(ModConfig config) {
+    public static void fireReloadingEvent(ModConfig config) {
         ReflectionHelper.invoke(FIRE_EVENT_METHOD, config, new ModConfigEvent.Reloading(config));
     }
 }

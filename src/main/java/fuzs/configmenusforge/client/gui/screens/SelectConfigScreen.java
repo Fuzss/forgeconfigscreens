@@ -6,12 +6,11 @@ import com.google.common.collect.ImmutableMap;
 import com.mojang.blaze3d.vertex.PoseStack;
 import fuzs.configmenusforge.ConfigMenusForge;
 import fuzs.configmenusforge.client.gui.components.ConfigSelectionList;
+import fuzs.configmenusforge.client.gui.data.IEntryData;
 import fuzs.configmenusforge.client.gui.util.ScreenUtil;
 import fuzs.configmenusforge.client.gui.widget.AnimatedIconButton;
 import fuzs.configmenusforge.client.util.ServerConfigUploader;
-import fuzs.configmenusforge.client.gui.data.IEntryData;
 import fuzs.configmenusforge.lib.core.ModLoaderEnvironment;
-import fuzs.configmenusforge.lib.network.NetworkHandler;
 import fuzs.configmenusforge.network.client.message.C2SAskPermissionsMessage;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
@@ -211,7 +210,7 @@ public class SelectConfigScreen extends Screen {
 			if (minecraft.isLocalServer()) {
 				this.serverPermissions = true;
 			} else {
-				NetworkHandler.INSTANCE.sendToServer(new C2SAskPermissionsMessage());
+				ConfigMenusForge.NETWORK.sendToServer(new C2SAskPermissionsMessage());
 			}
 		}
 	}
