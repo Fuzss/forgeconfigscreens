@@ -116,7 +116,6 @@ public abstract class ConfigScreen extends Screen {
     }
 
     private static class Main extends ConfigScreen {
-
         /**
          * called when closing screen via done button
          */
@@ -134,8 +133,10 @@ public abstract class ConfigScreen extends Screen {
         protected void init() {
             super.init();
             this.doneButton = this.addButton(new Button(this.width / 2 - 154, this.height - 28, 150, 20, DialogTexts.GUI_DONE, button -> {
-                this.valueToData.values().forEach(IEntryData::saveConfigValue);
-                this.onSave.run();
+                if (this.valueToData.values().stream().anyMatch(iEntryData -> !iEntryData.mayDiscardChanges())) {
+                    this.valueToData.values().forEach(IEntryData::saveConfigValue);
+                    this.onSave.run();
+                }
                 this.minecraft.setScreen(this.lastScreen);
             }));
             this.cancelButton = this.addButton(new Button(this.width / 2 + 4, this.height - 28, 150, 20, DialogTexts.GUI_CANCEL, button -> this.onClose()));

@@ -7,12 +7,12 @@ import java.io.ByteArrayInputStream;
 
 public class ModConfigSync {
 
-    public static void fireReloadEvent(ModConfig config) {
+    public static void fireReloadingEvent(ModConfig config) {
         ReflectionHelper.newInstance(ReflectionHelper.MOD_CONFIG_RELOADING_CONSTRUCTOR, config).ifPresent(evt -> ReflectionHelper.invoke(ReflectionHelper.FIRE_EVENT_METHOD, config, evt));
     }
 
     public static void acceptSyncedConfig(ModConfig config, byte[] bytes) {
         ReflectionHelper.invoke(ReflectionHelper.SET_CONFIG_DATA_METHOD, config, TomlFormat.instance().createParser().parse(new ByteArrayInputStream(bytes)));
-        fireReloadEvent(config);
+        fireReloadingEvent(config);
     }
 }

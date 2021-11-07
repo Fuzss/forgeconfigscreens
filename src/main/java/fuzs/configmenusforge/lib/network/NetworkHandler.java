@@ -1,7 +1,7 @@
 package fuzs.configmenusforge.lib.network;
 
-import fuzs.configmenusforge.ConfigMenusForge;
 import fuzs.configmenusforge.lib.network.message.Message;
+import fuzs.configmenusforge.lib.proxy.IProxy;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
@@ -28,28 +28,28 @@ import java.util.function.Supplier;
 /**
  * handler for network communications of all puzzles lib mods
  */
-public enum NetworkHandler {
-
-    INSTANCE;
-
+public class NetworkHandler {
     /**
      * protocol version for testing client-server compatibility of this mod
      */
     private static final String PROTOCOL_VERSION = Integer.toString(1);
+
     /**
      * channel for sending messages
-     * TODO make private when old handler is removed
      */
-    public static final SimpleChannel CHANNEL = NetworkRegistry.ChannelBuilder
-            .named(new ResourceLocation(ConfigMenusForge.MOD_ID, "main"))
-            .networkProtocolVersion(() -> PROTOCOL_VERSION)
-            .clientAcceptedVersions(PROTOCOL_VERSION::equals)
-            .serverAcceptedVersions(PROTOCOL_VERSION::equals)
-            .simpleChannel();
+    private final SimpleChannel channel;
     /**
      * message index
      */
-    private static final AtomicInteger DISCRIMINATOR = new AtomicInteger();
+    private final AtomicInteger discriminator;
+
+    /**
+     * @param channel mod network channel
+     */
+    private NetworkHandler(SimpleChannel channel) {
+        this.channel = channel;
+        this.discriminator = new AtomicInteger();
+    }
 
     /**
      * register a message for a side
@@ -76,14 +76,14 @@ public enum NetworkHandler {
             }
             PlayerEntity player;
             if (receptionSide.isClient()) {
-                player = ConfigMenusForge.PROXY.getClientPlayer();
+                player = IProxy.INSTANCE.getClientPlayer();
             } else {
                 player = ctx.getSender();
             }
             ctx.enqueueWork(() -> msg.handle(player, LogicalSidedProvider.INSTANCE.get(receptionSide)));
             ctx.setPacketHandled(true);
         };
-        CHANNEL.registerMessage(DISCRIMINATOR.getAndIncrement(), clazz, encode, decode, handle);
+        this.channel.registerMessage(this.discriminator.getAndIncrement(), clazz, encode, decode, handle);
     }
 
     /**
@@ -92,7 +92,7 @@ public enum NetworkHandler {
      */
     public void sendToServer(Message message) {
         Objects.requireNonNull(Minecraft.getInstance().getConnection(), "Cannot send packets when not in game!");
-        Minecraft.getInstance().getConnection().send(toServerboundPacket(message));
+        Minecraft.getInstance().getConnection().send(this.toServerboundPacket(message));
     }
 
     /**
@@ -101,7 +101,7 @@ public enum NetworkHandler {
      * @param player client player to send to
      */
     public void sendTo(Message message, ServerPlayerEntity player) {
-        player.connection.send(toClientboundPacket(message));
+        player.connection.send(this.toClientboundPacket(message));
     }
 
     /**
@@ -109,7 +109,7 @@ public enum NetworkHandler {
      * @param message message to send
      */
     public void sendToAll(Message message) {
-        ConfigMenusForge.PROXY.getGameServer().getPlayerList().broadcastAll(toClientboundPacket(message));
+        IProxy.INSTANCE.getGameServer().getPlayerList().broadcastAll(this.toClientboundPacket(message));
     }
 
     /**
@@ -118,8 +118,8 @@ public enum NetworkHandler {
      * @param exclude client to exclude
      */
     public void sendToAllExcept(Message message, ServerPlayerEntity exclude) {
-        final IPacket<?> packet = toClientboundPacket(message);
-        for (ServerPlayerEntity player : ConfigMenusForge.PROXY.getGameServer().getPlayerList().getPlayers()) {
+        final IPacket<?> packet = this.toClientboundPacket(message);
+        for (ServerPlayerEntity player : IProxy.INSTANCE.getGameServer().getPlayerList().getPlayers()) {
             if (player != exclude) {
                 player.connection.send(packet);
             }
@@ -147,7 +147,7 @@ public enum NetworkHandler {
      * @param level dimension key provider level
      */
     public void sendToAllNearExcept(Message message, @Nullable ServerPlayerEntity exclude, double posX, double posY, double posZ, double distance, World level) {
-        ConfigMenusForge.PROXY.getGameServer().getPlayerList().broadcast(exclude, posX, posY, posZ, distance, level.dimension(), toClientboundPacket(message));
+        IProxy.INSTANCE.getGameServer().getPlayerList().broadcast(exclude, posX, posY, posZ, distance, level.dimension(), this.toClientboundPacket(message));
     }
 
     /**
@@ -165,23 +165,48 @@ public enum NetworkHandler {
      * @param dimension dimension to send message in
      */
     public void sendToDimension(Message message, RegistryKey<World> dimension) {
-        ConfigMenusForge.PROXY.getGameServer().getPlayerList().broadcastAll(toClientboundPacket(message), dimension);
+        IProxy.INSTANCE.getGameServer().getPlayerList().broadcastAll(this.toClientboundPacket(message), dimension);
     }
 
     /**
      * @param message message to create packet from
      * @return      packet for message
      */
-    private static IPacket<?> toServerboundPacket(Message message) {
-        return CHANNEL.toVanillaPacket(message, NetworkDirection.PLAY_TO_SERVER);
+    private IPacket<?> toServerboundPacket(Message message) {
+        return this.channel.toVanillaPacket(message, NetworkDirection.PLAY_TO_SERVER);
     }
 
     /**
      * @param message message to create packet from
      * @return      packet for message
      */
-    private static IPacket<?> toClientboundPacket(Message message) {
-        return CHANNEL.toVanillaPacket(message, NetworkDirection.PLAY_TO_CLIENT);
+    private IPacket<?> toClientboundPacket(Message message) {
+        return this.channel.toVanillaPacket(message, NetworkDirection.PLAY_TO_CLIENT);
     }
 
+    /**
+     * creates a new network handler
+     * @param modId id for channel name
+     * @return mod specific network handler with default channel
+     */
+    public static NetworkHandler of(String modId) {
+        return of(modId, false, false);
+    }
+
+    /**
+     * creates a new network handler
+     * @param modId id for channel name
+     * @param clientAcceptsVanillaOrMissing are servers without this mod or vanilla compatible
+     * @param serverAcceptsVanillaOrMissing are clients without this mod or vanilla compatible
+     * @return mod specific network handler with configured channel
+     */
+    public static NetworkHandler of(String modId, boolean clientAcceptsVanillaOrMissing, boolean serverAcceptsVanillaOrMissing) {
+        final SimpleChannel channel = NetworkRegistry.ChannelBuilder
+                .named(new ResourceLocation(modId, "main"))
+                .networkProtocolVersion(() -> PROTOCOL_VERSION)
+                .clientAcceptedVersions(clientAcceptsVanillaOrMissing ? NetworkRegistry.acceptMissingOr(PROTOCOL_VERSION) : PROTOCOL_VERSION::equals)
+                .serverAcceptedVersions(serverAcceptsVanillaOrMissing ? NetworkRegistry.acceptMissingOr(PROTOCOL_VERSION) : PROTOCOL_VERSION::equals)
+                .simpleChannel();
+        return new NetworkHandler(channel);
+    }
 }

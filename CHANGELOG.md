@@ -3,6 +3,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog].
 
+## [v1.1.1-1.16.5] - 2021-11-07
+### Changed
+- Configs are now reloaded immediately after being edited
+### Fixed
+- Fixed vanilla servers showing as incompatible when they aren't
+- Fixed server config reloading event not being fired for the player that changed the config
+
 ## [v1.1-1.16.5] - 2021-11-05
 ### Added
 - Added filter button to config screen, supports: all, edited, resettable

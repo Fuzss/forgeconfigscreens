@@ -30,7 +30,7 @@ import java.util.stream.Stream;
 public class ScreenUtil {
     private static final ResourceLocation TINY_JUMPER_LOCATION = new ResourceLocation(ConfigMenusForge.MOD_ID, "textures/gui/tiny_jumper.png");
     private static final ITextComponent INFO_1_TOOLTIP = new TranslationTextComponent("configmenusforge.gui.info.1");
-    private static final ITextComponent INFO_2_TOOLTIP = new TranslationTextComponent("configmenusforge.gui.info.2", ConfigMenusForge.NAME);
+    private static final ITextComponent INFO_2_TOOLTIP = new TranslationTextComponent("configmenusforge.gui.info.2", ConfigMenusForge.MOD_NAME);
     private static final ITextComponent INFO_3_TOOLTIP = new TranslationTextComponent("configmenusforge.gui.info.3");
 
     public static ConfirmScreen makeConfirmationScreen(BooleanConsumer booleanConsumer, ITextComponent component1, ITextComponent component2, ResourceLocation background) {
@@ -55,7 +55,7 @@ public class ScreenUtil {
 
     public static AnimatedIconButton makeModPageButton(int posX, int posY, FontRenderer font, Consumer<Style> handleComponentClicked, ITooltipRenderer renderTooltip) {
         return new AnimatedIconButton(posX, posY, 20, 20, 0, 0, TINY_JUMPER_LOCATION, button -> {
-            Style style = Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, ConfigMenusForge.URL));
+            Style style = Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, ConfigMenusForge.MOD_URL));
             handleComponentClicked.accept(style);
         }, (Button button, MatrixStack poseStack, int mouseX, int mouseY) -> {
             final List<IReorderingProcessor> tooltip = Stream.of(INFO_1_TOOLTIP, INFO_2_TOOLTIP, INFO_3_TOOLTIP)

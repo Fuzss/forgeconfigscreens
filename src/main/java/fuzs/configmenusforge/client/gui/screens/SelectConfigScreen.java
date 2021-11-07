@@ -11,7 +11,6 @@ import fuzs.configmenusforge.client.gui.widget.AnimatedIconButton;
 import fuzs.configmenusforge.client.util.ServerConfigUploader;
 import fuzs.configmenusforge.config.data.IEntryData;
 import fuzs.configmenusforge.lib.core.ModLoaderEnvironment;
-import fuzs.configmenusforge.lib.network.NetworkHandler;
 import fuzs.configmenusforge.network.client.message.C2SAskPermissionsMessage;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.DialogTexts;
@@ -212,7 +211,7 @@ public class SelectConfigScreen extends Screen {
 			if (minecraft.isLocalServer()) {
 				this.serverPermissions = true;
 			} else {
-				NetworkHandler.INSTANCE.sendToServer(new C2SAskPermissionsMessage());
+				ConfigMenusForge.NETWORK.sendToServer(new C2SAskPermissionsMessage());
 			}
 		}
 	}

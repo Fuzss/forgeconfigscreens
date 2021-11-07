@@ -5,7 +5,6 @@ import com.electronwill.nightconfig.toml.TomlFormat;
 import fuzs.configmenusforge.ConfigMenusForge;
 import fuzs.configmenusforge.client.util.ModConfigSync;
 import fuzs.configmenusforge.client.util.ReflectionHelper;
-import fuzs.configmenusforge.lib.network.NetworkHandler;
 import fuzs.configmenusforge.lib.network.message.Message;
 import fuzs.configmenusforge.network.message.S2CUpdateConfigMessage;
 import net.minecraft.entity.player.PlayerEntity;
@@ -60,8 +59,8 @@ public class C2SSendConfigMessage implements Message {
                     // but we need to update the actual file config on the server
                     final CommentedConfig receivedConfig = TomlFormat.instance().createParser().parse(new ByteArrayInputStream(packet.fileData));
                     config.getConfigData().putAll(receivedConfig);
-                    ModConfigSync.fireReloadEvent(config);
-                    NetworkHandler.INSTANCE.sendToAllExcept(new S2CUpdateConfigMessage(packet.fileName, packet.fileData), (ServerPlayerEntity) player);
+                    ModConfigSync.fireReloadingEvent(config);
+                    ConfigMenusForge.NETWORK.sendToAllExcept(new S2CUpdateConfigMessage(packet.fileName, packet.fileData), (ServerPlayerEntity) player);
                     ConfigMenusForge.LOGGER.info("Server config has been updated by {}", player.getDisplayName().getString());
                 } else {
                     ConfigMenusForge.LOGGER.error("Failed to update server config with data received from {}", player.getDisplayName().getString());
