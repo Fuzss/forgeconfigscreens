@@ -3,6 +3,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog].
 
+## [v1.2.0-1.16.5] - 2021-11-09
+### Added
+- Added new world selection screen for editing server configs directly from the main menu when no world is loaded yet
+
 ## [v1.1.1-1.16.5] - 2021-11-07
 ### Changed
 - Configs are now reloaded immediately after being edited

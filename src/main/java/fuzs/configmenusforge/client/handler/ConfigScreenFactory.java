@@ -2,6 +2,7 @@ package fuzs.configmenusforge.client.handler;
 
 import fuzs.configmenusforge.client.gui.screens.SelectConfigScreen;
 import fuzs.configmenusforge.client.gui.util.ScreenUtil;
+import fuzs.configmenusforge.client.util.ModConfigSync;
 import fuzs.configmenusforge.client.util.ReflectionHelper;
 import fuzs.configmenusforge.lib.core.ModLoaderEnvironment;
 import net.minecraft.client.gui.AbstractGui;
@@ -34,7 +35,7 @@ public class ConfigScreenFactory {
     }
 
     public static Optional<Function<Screen, Screen>> createConfigScreen(final String modId, String displayName, ResourceLocation optionsBackground) {
-        final Optional<Set<ModConfig>> configs = ReflectionHelper.<EnumMap<ModConfig.Type, Set<ModConfig>>>get(ReflectionHelper.CONFIG_SETS_FIELD, ConfigTracker.INSTANCE).map(configSets -> configSets.values().stream()
+        final Optional<Set<ModConfig>> configs = ReflectionHelper.<EnumMap<ModConfig.Type, Set<ModConfig>>>get(ModConfigSync.CONFIG_SETS_FIELD, ConfigTracker.INSTANCE).map(configSets -> configSets.values().stream()
                 .flatMap(Set::stream)
                 .filter(config -> config.getModId().equals(modId))
                 .collect(Collectors.toSet()));

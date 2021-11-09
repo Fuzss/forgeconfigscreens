@@ -13,10 +13,13 @@ public class ServerConfigUploader {
     public static void saveAndUpload(ModConfig config) {
         config.getSpec().save();
         ModConfigSync.fireReloadingEvent(config);
-        if (config.getType() == ModConfig.Type.SERVER && !Minecraft.getInstance().isLocalServer()) {
-            final ByteArrayOutputStream stream = new ByteArrayOutputStream();
-            TomlFormat.instance().createWriter().write(config.getConfigData(), stream);
-            ConfigMenusForge.NETWORK.sendToServer(new C2SSendConfigMessage(config.getFileName(), stream.toByteArray()));
+        if (config.getType() == ModConfig.Type.SERVER) {
+            final Minecraft minecraft = Minecraft.getInstance();
+            if (minecraft.getConnection() != null && !minecraft.isLocalServer()) {
+                final ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                TomlFormat.instance().createWriter().write(config.getConfigData(), stream);
+                ConfigMenusForge.NETWORK.sendToServer(new C2SSendConfigMessage(config.getFileName(), stream.toByteArray()));
+            }
         }
     }
 }

@@ -5,10 +5,12 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import fuzs.configmenusforge.ConfigMenusForge;
 import fuzs.configmenusforge.client.gui.screens.ConfigScreen;
 import fuzs.configmenusforge.client.gui.screens.SelectConfigScreen;
-import fuzs.configmenusforge.config.data.IEntryData;
+import fuzs.configmenusforge.client.gui.data.IEntryData;
+import fuzs.configmenusforge.client.gui.screens.SelectConfigWorldScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.AbstractGui;
 import net.minecraft.client.gui.FontRenderer;
+import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.list.AbstractList;
 import net.minecraft.client.gui.widget.list.ExtendedList;
 import net.minecraft.util.ResourceLocation;
@@ -29,14 +31,15 @@ public class ConfigSelectionList extends CustomBackgroundObjectSelectionList<Con
 	private static final ResourceLocation ICON_LOCATION = new ResourceLocation(ConfigMenusForge.MOD_ID, "textures/misc/config.png");
 	private static final ResourceLocation ICON_DISABLED_LOCATION = new ResourceLocation(ConfigMenusForge.MOD_ID, "textures/misc/disabled_config.png");
 	private static final ResourceLocation ICON_OVERLAY_LOCATION = new ResourceLocation("textures/gui/world_selection.png");
+	private static final ITextComponent SELECT_WORLD_TOOLTIP = new TranslationTextComponent("configmenusforge.gui.select.select_world").withStyle(TextFormatting.GOLD);
 	private static final ITextComponent NO_DATA_TOOLTIP = new TranslationTextComponent("configmenusforge.gui.select.no_data").withStyle(TextFormatting.RED);
 	private static final ITextComponent NO_PERMISSIONS_TOOLTIP = new TranslationTextComponent("configmenusforge.gui.select.no_permissions").withStyle(TextFormatting.GOLD);
 	private static final ITextComponent MULTIPLAYER_SERVER_TOOLTIP = new TranslationTextComponent("configmenusforge.gui.select.multiplayer_server").withStyle(TextFormatting.GOLD);
 
 	private final SelectConfigScreen screen;
 
-	public ConfigSelectionList(SelectConfigScreen selectConfigScreen, Minecraft minecraft, int i, int j, int k, int l, int m, String query) {
-		super(minecraft, selectConfigScreen.getBackground(), i, j, k, l, m);
+	public ConfigSelectionList(SelectConfigScreen selectConfigScreen, Minecraft minecraft, int width, int height, int y0, int y1, int itemHeight, String query) {
+		super(minecraft, selectConfigScreen.getBackground(), width, height, y0, y1, itemHeight);
 		this.screen = selectConfigScreen;
 		this.refreshList(query);
 	}
@@ -130,7 +133,13 @@ public class ConfigSelectionList extends CustomBackgroundObjectSelectionList<Con
 				RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
 				boolean leftHovered = mouseX - entryLeft < 32;
 				int textureY = leftHovered ? 32 : 0;
-				if (this.invalidData()) {
+				if (this.needsWorldInstance()) {
+					AbstractGui.blit(poseStack, entryLeft, entryTop, 32.0F, (float)textureY, 32, 32, 256, 256);
+					AbstractGui.blit(poseStack, entryLeft, entryTop, 64.0F, textureY, 32, 32, 256, 256);
+					if (leftHovered) {
+						this.screen.setActiveTooltip(this.minecraft.font.split(ConfigSelectionList.SELECT_WORLD_TOOLTIP, 200));
+					}
+				} else if (this.invalidData()) {
 					AbstractGui.blit(poseStack, entryLeft, entryTop, 96.0F, (float)textureY, 32, 32, 256, 256);
 					if (leftHovered) {
 						this.screen.setActiveTooltip(this.minecraft.font.split(ConfigSelectionList.NO_DATA_TOOLTIP, 200));
@@ -150,7 +159,6 @@ public class ConfigSelectionList extends CustomBackgroundObjectSelectionList<Con
 					AbstractGui.blit(poseStack, entryLeft, entryTop, 0.0F, (float)textureY, 32, 32, 256, 256);
 				}
 			}
-
 		}
 
 		@Override
@@ -174,13 +182,27 @@ public class ConfigSelectionList extends CustomBackgroundObjectSelectionList<Con
 		}
 
 		public void openConfig() {
-			final ConfigScreen configScreen = ConfigScreen.create(this.screen, this.screen.getDisplayName(), this.screen.getBackground(), this.config, this.screen.getValueToDataMap(this.config));
-			this.minecraft.setScreen(configScreen);
+			if (this.needsWorldInstance()) {
+				this.selectWorld();
+			} else {
+				Screen screen = ConfigScreen.create(this.screen, this.screen.getDisplayName(), this.screen.getBackground(), this.config, this.screen.getValueToDataMap(this.config));
+				this.minecraft.setScreen(screen);
+			}
+		}
+
+		private void selectWorld() {
+			Screen screen = new SelectConfigWorldScreen(this.screen, this.screen.getDisplayName(), this.screen.getBackground(), this.config, this.screen.getLevelList());
+			this.minecraft.setScreen(screen);
 		}
 
 		public boolean invalidData() {
-			// check if world is loaded as Forge doesn't clean-up server config after leaving world
-			return this.config.getType() == ModConfig.Type.SERVER && this.minecraft.getConnection() == null || this.screen.getValueToDataMap(this.config).isEmpty();
+			return this.screen.getValueToDataMap(this.config).isEmpty();
+		}
+
+		public boolean needsWorldInstance() {
+			// just display as invalid if there are no worlds to select server configs from anyways
+			// check if world is loaded as Forge doesn't clean up server config after leaving world
+			return !this.screen.getLevelList().isEmpty() && this.config.getType() == ModConfig.Type.SERVER && this.minecraft.getConnection() == null;
 		}
 
 		private boolean noPermissions() {
@@ -192,7 +214,7 @@ public class ConfigSelectionList extends CustomBackgroundObjectSelectionList<Con
 		}
 
 		boolean isDisabled() {
-			return this.invalidData() || this.noPermissions();
+			return !this.needsWorldInstance() && (this.invalidData() || this.noPermissions());
 		}
 
 		public ModConfig getConfig() {

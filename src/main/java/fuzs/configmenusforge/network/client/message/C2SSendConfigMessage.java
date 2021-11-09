@@ -52,7 +52,7 @@ public class C2SSendConfigMessage implements Message {
         public void handle(C2SSendConfigMessage packet, PlayerEntity player, Object gameInstance) {
             final MinecraftServer server = (MinecraftServer) gameInstance;
             if (server.isDedicatedServer() && player.hasPermissions(server.getOperatorUserPermissionLevel())) {
-                final Optional<ModConfig> optConfig = ReflectionHelper.<ConcurrentHashMap<String, ModConfig>>get(ReflectionHelper.FILE_MAP_FIELD, ConfigTracker.INSTANCE).map(fileMap -> fileMap.get(packet.fileName));
+                final Optional<ModConfig> optConfig = ReflectionHelper.<ConcurrentHashMap<String, ModConfig>>get(ModConfigSync.FILE_MAP_FIELD, ConfigTracker.INSTANCE).map(fileMap -> fileMap.get(packet.fileName));
                 if (optConfig.isPresent()) {
                     final ModConfig config = optConfig.get();
                     // this is basically ModConfig::acceptSyncedConfig which we can't use as the config sent from a client only exists in memory,

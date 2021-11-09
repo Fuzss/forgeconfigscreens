@@ -5,7 +5,6 @@ import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.google.common.collect.Iterators;
 import fuzs.configmenusforge.client.gui.screens.ConfigScreen;
 import fuzs.configmenusforge.client.gui.util.ScreenUtil;
-import fuzs.configmenusforge.config.data.IEntryData;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TranslationTextComponent;

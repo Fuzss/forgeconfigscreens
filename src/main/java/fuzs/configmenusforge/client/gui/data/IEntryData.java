@@ -1,4 +1,4 @@
-package fuzs.configmenusforge.config.data;
+package fuzs.configmenusforge.client.gui.data;
 
 
 import com.electronwill.nightconfig.core.CommentedConfig;
@@ -6,7 +6,6 @@ import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import fuzs.configmenusforge.client.gui.data.EntryData;
 import net.minecraft.util.text.IFormattableTextComponent;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;

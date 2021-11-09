@@ -48,7 +48,7 @@ public class S2CUpdateConfigMessage implements Message {
             // should never happen, but just to be safe as there would be a classcastexception otherwise
             // (class com.electronwill.nightconfig.core.SimpleCommentedConfig cannot be cast to class com.electronwill.nightconfig.core.file.CommentedFileConfig)
             if (!Minecraft.getInstance().isLocalServer()) {
-                ReflectionHelper.<ConcurrentHashMap<String, ModConfig>>get(ReflectionHelper.FILE_MAP_FIELD, ConfigTracker.INSTANCE)
+                ReflectionHelper.<ConcurrentHashMap<String, ModConfig>>get(ModConfigSync.FILE_MAP_FIELD, ConfigTracker.INSTANCE)
                         .map(fileMap -> fileMap.get(packet.fileName))
                         .ifPresent(config -> ModConfigSync.acceptSyncedConfig(config, packet.fileData));
             }

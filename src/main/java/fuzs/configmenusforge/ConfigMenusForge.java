@@ -1,12 +1,8 @@
 package fuzs.configmenusforge;
 
 import fuzs.configmenusforge.config.TestConfig;
-import fuzs.configmenusforge.lib.core.EnvTypeExecutor;
 import fuzs.configmenusforge.lib.core.ModLoaderEnvironment;
 import fuzs.configmenusforge.lib.network.NetworkHandler;
-import fuzs.configmenusforge.lib.proxy.ClientProxy;
-import fuzs.configmenusforge.lib.proxy.IProxy;
-import fuzs.configmenusforge.lib.proxy.ServerProxy;
 import fuzs.configmenusforge.network.client.message.C2SAskPermissionsMessage;
 import fuzs.configmenusforge.network.client.message.C2SSendConfigMessage;
 import fuzs.configmenusforge.network.message.S2CGrantPermissionsMessage;

@@ -11,7 +11,7 @@ import fuzs.configmenusforge.client.gui.util.ScreenUtil;
 import fuzs.configmenusforge.client.gui.widget.ConfigEditBox;
 import fuzs.configmenusforge.client.gui.widget.IconButton;
 import fuzs.configmenusforge.client.util.ServerConfigUploader;
-import fuzs.configmenusforge.config.data.IEntryData;
+import fuzs.configmenusforge.client.gui.data.IEntryData;
 import net.minecraft.client.audio.SoundHandler;
 import net.minecraft.client.gui.DialogTexts;
 import net.minecraft.client.gui.FontRenderer;
@@ -164,14 +164,14 @@ public abstract class ConfigScreen extends Screen {
                 if (this.valueToData.values().stream().allMatch(IEntryData::mayDiscardChanges)) {
                     confirmScreen = this.lastScreen;
                 } else {
-                    confirmScreen = ScreenUtil.makeConfirmationScreen(result -> {
+                    confirmScreen = ScreenUtil.makeConfirmationScreen(new TranslationTextComponent("configmenusforge.gui.message.discard"), StringTextComponent.EMPTY, this.background, result -> {
                         if (result) {
                             this.valueToData.values().forEach(IEntryData::discardCurrentValue);
                             this.minecraft.setScreen(this.lastScreen);
                         } else {
                             this.minecraft.setScreen(this);
                         }
-                    }, new TranslationTextComponent("configmenusforge.gui.message.discard"), StringTextComponent.EMPTY, this.background);
+                    });
                 }
                 this.minecraft.setScreen(confirmScreen);
             }
@@ -974,13 +974,13 @@ public abstract class ConfigScreen extends Screen {
         Screen makeEditScreen(String type, List<String> currentValue, ForgeConfigSpec.ValueSpec valueSpec, Consumer<List<String>> onSave) {
             // TODO this needs to be reworked to allow the user to choose a data type as always returning a string list is not safe
             // displays a warning screen when editing a list of unknown type before allowing the edit
-            return ScreenUtil.makeConfirmationScreen(result -> {
+            return ScreenUtil.makeConfirmationScreen(new TranslationTextComponent("configmenusforge.gui.message.dangerous.title").withStyle(TextFormatting.RED), new TranslationTextComponent("configmenusforge.gui.message.dangerous.text"), DialogTexts.GUI_PROCEED, DialogTexts.GUI_BACK, ConfigScreen.this.background, result -> {
                 if (result) {
                     ConfigScreen.this.minecraft.setScreen(super.makeEditScreen(type, currentValue, valueSpec, onSave));
                 } else {
                     ConfigScreen.this.minecraft.setScreen(ConfigScreen.this);
                 }
-            }, new TranslationTextComponent("configmenusforge.gui.message.dangerous.title").withStyle(TextFormatting.RED), new TranslationTextComponent("configmenusforge.gui.message.dangerous.text"), DialogTexts.GUI_PROCEED, DialogTexts.GUI_BACK, ConfigScreen.this.background);
+            });
         }
     }
 }
