@@ -30,7 +30,7 @@ public class ScreenUtil {
     private static final Component INFO_2_TOOLTIP = new TranslatableComponent("configmenusforge.gui.info.2", ConfigMenusForge.MOD_NAME);
     private static final Component INFO_3_TOOLTIP = new TranslatableComponent("configmenusforge.gui.info.3");
 
-    public static ConfirmScreen makeConfirmationScreen(BooleanConsumer booleanConsumer, Component component1, Component component2, ResourceLocation background) {
+    public static ConfirmScreen makeConfirmationScreen(Component component1, Component component2, ResourceLocation background, BooleanConsumer booleanConsumer) {
         // just a confirmation screen with a custom background
         return new ConfirmScreen(booleanConsumer, component1, component2) {
 
@@ -41,7 +41,7 @@ public class ScreenUtil {
         };
     }
 
-    public static ConfirmScreen makeConfirmationScreen(BooleanConsumer booleanConsumer, Component component1, Component component2, Component component3, Component component4, ResourceLocation background) {
+    public static ConfirmScreen makeConfirmationScreen(Component component1, Component component2, Component component3, Component component4, ResourceLocation background, BooleanConsumer booleanConsumer) {
         // just a confirmation screen with a custom background
         return new ConfirmScreen(booleanConsumer, component1, component2, component3, component4) {
 

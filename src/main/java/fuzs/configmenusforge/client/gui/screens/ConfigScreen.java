@@ -166,14 +166,14 @@ public abstract class ConfigScreen extends Screen {
                 if (this.valueToData.values().stream().allMatch(IEntryData::mayDiscardChanges)) {
                     confirmScreen = this.lastScreen;
                 } else {
-                    confirmScreen = ScreenUtil.makeConfirmationScreen(result -> {
+                    confirmScreen = ScreenUtil.makeConfirmationScreen(new TranslatableComponent("configmenusforge.gui.message.discard"), TextComponent.EMPTY, this.background, result -> {
                         if (result) {
                             this.valueToData.values().forEach(IEntryData::discardCurrentValue);
                             this.minecraft.setScreen(this.lastScreen);
                         } else {
                             this.minecraft.setScreen(this);
                         }
-                    }, new TranslatableComponent("configmenusforge.gui.message.discard"), TextComponent.EMPTY, this.background);
+                    });
                 }
                 this.minecraft.setScreen(confirmScreen);
             }
@@ -1029,13 +1029,13 @@ public abstract class ConfigScreen extends Screen {
         Screen makeEditScreen(String type, List<String> currentValue, ForgeConfigSpec.ValueSpec valueSpec, Consumer<List<String>> onSave) {
             // TODO this needs to be reworked to allow the user to choose a data type as always returning a string list is not safe
             // displays a warning screen when editing a list of unknown type before allowing the edit
-            return ScreenUtil.makeConfirmationScreen(result -> {
+            return ScreenUtil.makeConfirmationScreen(new TranslatableComponent("configmenusforge.gui.message.dangerous.title").withStyle(ChatFormatting.RED), new TranslatableComponent("configmenusforge.gui.message.dangerous.text"), CommonComponents.GUI_PROCEED, CommonComponents.GUI_BACK, ConfigScreen.this.background, result -> {
                 if (result) {
                     ConfigScreen.this.minecraft.setScreen(super.makeEditScreen(type, currentValue, valueSpec, onSave));
                 } else {
                     ConfigScreen.this.minecraft.setScreen(ConfigScreen.this);
                 }
-            }, new TranslatableComponent("configmenusforge.gui.message.dangerous.title").withStyle(ChatFormatting.RED), new TranslatableComponent("configmenusforge.gui.message.dangerous.text"), CommonComponents.GUI_PROCEED, CommonComponents.GUI_BACK, ConfigScreen.this.background);
+            });
         }
     }
 }
