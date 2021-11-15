@@ -57,6 +57,9 @@ public class C2SSendConfigMessage implements Message {
                     // but we need to update the actual file config on the server
                     final CommentedConfig receivedConfig = TomlFormat.instance().createParser().parse(new ByteArrayInputStream(packet.fileData));
                     config.getConfigData().putAll(receivedConfig);
+                    // save and reset caches
+                    config.save();
+                    config.getSpec().afterReload();
                     ModConfigSync.fireReloadingEvent(config);
                     ConfigMenusForge.NETWORK.sendToAllExcept(new S2CUpdateConfigMessage(packet.fileName, packet.fileData), (ServerPlayer) player);
                     ConfigMenusForge.LOGGER.info("Server config has been updated by {}", player.getDisplayName().getString());

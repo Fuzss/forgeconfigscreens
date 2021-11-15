@@ -495,7 +495,6 @@ public abstract class ConfigScreen extends Screen {
     }
 
     private enum EntryFilter {
-
         ALL(6, "configmenusforge.gui.tooltip.showing.all", data -> true),
         ENTRIES(2, "configmenusforge.gui.tooltip.showing.entries", Predicate.not(IEntryData::category), true),
         CATEGORIES(8, "configmenusforge.gui.tooltip.showing.categories", IEntryData::category, true),
