@@ -53,7 +53,7 @@ public class ConfigWorldSelectionList extends CustomBackgroundObjectSelectionLis
    private static final Component SNAPSHOT_TOOLTIP_1 = (new TranslatableComponent("selectWorld.tooltip.snapshot1")).withStyle(ChatFormatting.GOLD);
    private static final Component SNAPSHOT_TOOLTIP_2 = (new TranslatableComponent("selectWorld.tooltip.snapshot2")).withStyle(ChatFormatting.GOLD);
    private static final Component WORLD_LOCKED_TOOLTIP = (new TranslatableComponent("selectWorld.locked")).withStyle(ChatFormatting.RED);
-   private static final Component WORLD_PRE_WORLDHEIGHT_TOOLTIP = (new TranslatableComponent("selectWorld.pre_worldheight")).withStyle(ChatFormatting.RED);
+   private static final Component WORLD_REQUIRES_CONVERSION = (new TranslatableComponent("selectWorld.conversion.tooltip")).withStyle(ChatFormatting.RED);
    private static final String SERVER_CONFIG_NAME = "serverconfig";
    private static final Marker CONFIG = MarkerManager.getMarker("CONFIG");
 
@@ -135,8 +135,6 @@ public class ConfigWorldSelectionList extends CustomBackgroundObjectSelectionLis
          Component component;
          if (this.summary.isLocked()) {
             component = CommonComponents.joinForNarration(translatablecomponent, ConfigWorldSelectionList.WORLD_LOCKED_TOOLTIP);
-         } else if (this.summary.isIncompatibleWorldHeight()) {
-            component = CommonComponents.joinForNarration(translatablecomponent, ConfigWorldSelectionList.WORLD_PRE_WORLDHEIGHT_TOOLTIP);
          } else {
             component = translatablecomponent;
          }
@@ -172,10 +170,10 @@ public class ConfigWorldSelectionList extends CustomBackgroundObjectSelectionLis
                if (leftHovered) {
                   this.screen.setActiveTooltip(this.minecraft.font.split(ConfigWorldSelectionList.WORLD_LOCKED_TOOLTIP, 175));
                }
-            } else if (this.summary.isIncompatibleWorldHeight()) {
+            } else if (this.summary.requiresManualConversion()) {
                GuiComponent.blit(pMatrixStack, pLeft, pTop, 96.0F, 32.0F, 32, 32, 256, 256);
                if (leftHovered) {
-                  this.screen.setActiveTooltip(this.minecraft.font.split(ConfigWorldSelectionList.WORLD_PRE_WORLDHEIGHT_TOOLTIP, 175));
+                  this.screen.setActiveTooltip(this.minecraft.font.split(ConfigWorldSelectionList.WORLD_REQUIRES_CONVERSION, 175));
                }
             } else if (this.summary.markVersionInList()) {
                GuiComponent.blit(pMatrixStack, pLeft, pTop, 32.0F, (float)textureY, 32, 32, 256, 256);

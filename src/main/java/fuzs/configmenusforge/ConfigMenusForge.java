@@ -14,8 +14,8 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLConstructModEvent;
 import net.minecraftforge.fml.loading.FileUtils;
-import net.minecraftforge.fmllegacy.network.FMLNetworkConstants;
-import net.minecraftforge.fmllegacy.network.NetworkDirection;
+import net.minecraftforge.network.NetworkConstants;
+import net.minecraftforge.network.NetworkDirection;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -34,7 +34,7 @@ public class ConfigMenusForge {
 
     @SubscribeEvent
     public static void onConstructMod(final FMLConstructModEvent evt) {
-        ModLoadingContext.get().registerExtensionPoint(IExtensionPoint.DisplayTest.class, () -> new IExtensionPoint.DisplayTest(() -> FMLNetworkConstants.IGNORESERVERONLY, (remote, server) -> true));
+        ModLoadingContext.get().registerExtensionPoint(IExtensionPoint.DisplayTest.class, () -> new IExtensionPoint.DisplayTest(() -> NetworkConstants.IGNORESERVERONLY, (remote, server) -> true));
         registerMessages();
         addTestConfigs();
     }

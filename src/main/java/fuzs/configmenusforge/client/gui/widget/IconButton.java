@@ -63,7 +63,7 @@ public class IconButton extends Button {
     @Override
     public void renderButton(PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
         Minecraft minecraft = Minecraft.getInstance();
-        int index = this.getYImage(this.isHovered());
+        int index = this.getYImage(this.isHoveredOrFocused());
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, this.alpha);
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
@@ -76,7 +76,7 @@ public class IconButton extends Button {
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderTexture(0, this.resourceLocation);
         blit(poseStack, this.x, this.y, this.xTexStart, this.yTexStart + index * this.yDiffTex, this.width, this.height, this.textureWidth, this.textureHeight);
-        if (this.isHovered()) {
+        if (this.isHoveredOrFocused()) {
             this.renderToolTip(poseStack, mouseX, mouseY);
         }
     }

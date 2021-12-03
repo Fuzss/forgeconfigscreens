@@ -28,7 +28,7 @@ public class AnimatedIconButton extends IconButton {
     }
 
     public void tick() {
-        if (this.isHovered() || this.tickTime > 0) {
+        if (this.isHoveredOrFocused() || this.tickTime > 0) {
             this.tickTime++;
             this.tickTime %= this.frames * this.speed;
         }

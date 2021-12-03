@@ -4,9 +4,9 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.OptionsScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraftforge.client.ConfigGuiHandler;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.loading.moddiscovery.ModInfo;
-import net.minecraftforge.fmlclient.ConfigGuiHandler;
 import net.minecraftforge.forgespi.language.IModInfo;
 
 import java.util.Optional;

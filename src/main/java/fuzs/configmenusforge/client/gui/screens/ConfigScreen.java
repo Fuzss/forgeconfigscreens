@@ -216,9 +216,9 @@ public abstract class ConfigScreen extends Screen {
                     @Override
                     public void renderButton(PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
                         // yellow when hovered
-                        int color = otherScreen && this.isHovered() ? 16777045 : 16777215;
+                        int color = otherScreen && this.isHoveredOrFocused() ? 16777045 : 16777215;
                         drawCenteredString(poseStack, Sub.this.font, this.getMessage(), this.x + this.width / 2, this.y + (this.height - 8) / 2, color);
-                        if (this.isHovered()) {
+                        if (this.isHoveredOrFocused()) {
                             this.renderToolTip(poseStack, mouseX, mouseY);
                         }
                     }
@@ -668,7 +668,7 @@ public abstract class ConfigScreen extends Screen {
 
         @Override
         boolean isHovered(int mouseX, int mouseY) {
-            return this.button.isHovered();
+            return this.button.isHoveredOrFocused();
         }
 
         @Override
