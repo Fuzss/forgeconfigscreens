@@ -16,8 +16,8 @@ import net.minecraftforge.fml.event.lifecycle.FMLConstructModEvent;
 import net.minecraftforge.fml.loading.FileUtils;
 import net.minecraftforge.network.NetworkConstants;
 import net.minecraftforge.network.NetworkDirection;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 
@@ -28,7 +28,7 @@ public class ConfigMenusForge {
     public static final String MOD_ID = "configmenusforge";
     public static final String MOD_NAME = "Config Menus for Forge";
     public static final String MOD_URL = "https://www.curseforge.com/minecraft/mc-mods/config-menus-forge";
-    public static final Logger LOGGER = LogManager.getLogger(ConfigMenusForge.MOD_NAME);
+    public static final Logger LOGGER = LoggerFactory.getLogger(MOD_NAME);
 
     public static final NetworkHandler NETWORK = NetworkHandler.of(MOD_ID, true, false);
 

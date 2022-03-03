@@ -29,8 +29,8 @@ import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.loading.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
-import org.apache.logging.log4j.Marker;
-import org.apache.logging.log4j.MarkerManager;
+import org.slf4j.Marker;
+import org.slf4j.MarkerFactory;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -55,7 +55,7 @@ public class ConfigWorldSelectionList extends CustomBackgroundObjectSelectionLis
    private static final Component WORLD_LOCKED_TOOLTIP = (new TranslatableComponent("selectWorld.locked")).withStyle(ChatFormatting.RED);
    private static final Component WORLD_REQUIRES_CONVERSION = (new TranslatableComponent("selectWorld.conversion.tooltip")).withStyle(ChatFormatting.RED);
    private static final String SERVER_CONFIG_NAME = "serverconfig";
-   private static final Marker CONFIG = MarkerManager.getMarker("CONFIG");
+   private static final Marker CONFIG = MarkerFactory.getMarker("CONFIG");
 
    private final SelectConfigWorldScreen screen;
    private final List<LevelSummary> levelList;

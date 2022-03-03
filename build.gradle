@@ -74,11 +74,6 @@ minecraft {
     }
 }
 
-//configurations {
-//
-//    shade
-//}
-
 repositories {
 
     mavenLocal()
@@ -88,17 +83,13 @@ repositories {
 dependencies {
 
     minecraft "net.minecraftforge:forge:${forgeVersion}"
-//    annotationProcessor 'org.spongepowered:mixin:0.8.3:processor'
+//    annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 
-    runtimeOnly fg.deobf("curse.maven:catalogue-459701:3543625")
-    runtimeOnly fg.deobf("curse.maven:bettermodsbutton-541584:3548185")
-
-    // shadow demo
-//    implementation "com.github.Ocelot5836:Sonar:ef5b90d"
-//    shade "com.github.Ocelot5836:Sonar:ef5b90d"
+    runtimeOnly fg.deobf("curse.maven:catalogue-459701:3559402")
+    runtimeOnly fg.deobf("curse.maven:bettermodsbutton-541584:3671308")
 
     // local maven
-//    implementation "fuzs.puzzleslib:PuzzlesLib:${puzzlesVersion}"
+//    implementation fg.deobf("fuzs.puzzleslib:PuzzlesLib:${puzzlesVersion}")
     // try use curse maven when local maven is not available
     // file id is end of url (7 digits usually) when on file details page on curse
 //    implementation fg.deobf("curse.maven:puzzles-lib:<file-id>")
@@ -169,32 +160,6 @@ ext.jarAttributes = [
 //        "MixinConfigs"              : "META-INF/${project.modid}.mixins.json"
 ]
 
-//import com.github.jengelman.gradle.plugins.shadow.tasks.ConfigureShadowRelocation
-//
-//task relocateShadowJar(type: ConfigureShadowRelocation) {
-//
-//    // Configure Auto Relocation
-//    target = tasks.shadowJar
-//}
-//
-//tasks.shadowJar.dependsOn tasks.relocateShadowJar
-//
-//shadowJar {
-//
-//    from rootProject.file("LICENSE")
-//    configurations = [project.configurations.shade]
-//    // relocation is done via ConfigureShadowRelocation task
-//    // make this main jar without any classifier if it exists
-//    classifier ""
-//}
-//
-//reobf {
-//
-//    shadowJar {}
-//}
-//
-//build.dependsOn reobfShadowJar
-
 def createJarTask(def name, def type, def sources) {
 
     return tasks.create(name, Jar) {
@@ -239,43 +204,35 @@ jar {
     group 'jar'
 }
 
-createJarTask("deobfJar", "deobf", [sourceSets.main.output])
+//createJarTask("deobfJar", "deobf", [sourceSets.main.output])
 createJarTask("sourceJar", "sources", sourceSets.main.allSource)
 createJarTask("javadocJar", "javadoc", javadoc)
-
 createSignJarTask("signJar", jar)
-//createSignJarTask("signShadowJar", shadowJar)
-createSignJarTask("signDeobfJar", deobfJar)
+//createSignJarTask("signDeobfJar", deobfJar)
 createSignJarTask("signSourceJar", sourceJar)
 createSignJarTask("signJavadocJar", javadocJar)
 
 // finalize all jar build tasks with a signing task
-def jarTasks = [jar, deobfJar, sourceJar, javadocJar]
-//def jarTasks = [jar, shadowJar, deobfJar, sourceJar, javadocJar]
+def jarTasks = [jar, sourceJar, javadocJar]
 jarTasks.each { task -> task.finalizedBy tasks.findByName("sign" + task.name.substring(0, 1).toUpperCase() + task.name.substring(1))}
 
 signJar.mustRunAfter 'reobfJar'
-//signShadowJar.mustRunAfter 'reobfShadowJar'
+jar.finalizedBy 'reobfJar'
 
 artifacts {
-
     archives jar
-//    archives shadowJar
 //    archives deobfJar
 //    archives sourceJar
 //    archives javadocJar
 }
 
 publishing {
-
     publications {
-
         mavenJava (MavenPublication) {
-
-            artifact deobfJar
+//            artifact deobfJar
+            artifact jar
             artifact sourceJar
             artifact javadocJar
-            from components.java
         }
     }
 }
