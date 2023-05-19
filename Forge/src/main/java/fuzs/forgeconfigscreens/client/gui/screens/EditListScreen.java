@@ -4,7 +4,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import com.mojang.blaze3d.vertex.PoseStack;
 import fuzs.forgeconfigscreens.client.gui.widget.ConfigEditBox;
-import fuzs.forgeconfigscreens.client.gui.widget.IconButton;
+import fuzs.forgeconfigscreens.client.gui.widget.MutableIconButton;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.ContainerObjectSelectionList;
 import net.minecraft.client.gui.components.events.GuiEventListener;
@@ -153,21 +153,24 @@ public class EditListScreen extends Screen {
 
         public AddEntry(EditList list, List<MutableObject<String>> values) {
             final List<FormattedCharSequence> tooltip = EditListScreen.this.minecraft.font.split(Component.translatable("configmenusforge.gui.tooltip.add"), 200);
-            this.addButton = new IconButton(0, 0, 20, 20, 80, 0, ConfigScreen.ICONS_LOCATION, button -> {
+            this.addButton = new MutableIconButton(0, 0, 20, 20, 80, 0, ConfigScreen.ICONS_LOCATION, button -> {
                 MutableObject<String> holder = new MutableObject<>("");
                 values.add(holder);
                 list.addEntry(list.children().size() - 1, new EditEntry(list, holder, true));
-            }, (button, matrixStack, mouseX, mouseY) -> {
-                if (button.active) {
-                    EditListScreen.this.activeTooltip = tooltip;
+            }) {
+
+                @Override
+                public void renderWidget(PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
+                    super.renderWidget(poseStack, mouseX, mouseY, partialTicks);
+                    if (this.active) EditListScreen.this.activeTooltip = tooltip;
                 }
-            });
+            };
         }
 
         @Override
         public void render(PoseStack poseStack, int index, int entryTop, int entryLeft, int rowWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float partialTicks) {
-            this.addButton.x = entryLeft + rowWidth - 21;
-            this.addButton.y = entryTop;
+            this.addButton.setX(entryLeft + rowWidth - 21);
+            this.addButton.setY(entryTop);
             this.addButton.render(poseStack, mouseX, mouseY, partialTicks);
         }
 
@@ -205,8 +208,8 @@ public class EditListScreen extends Screen {
             this.textField = new ConfigEditBox(EditListScreen.this.font, 0, 0, 260 - 24, 18, () -> EditListScreen.this.activeTextField, activeTextField -> EditListScreen.this.activeTextField = activeTextField) {
 
                 @Override
-                public void setFocus(boolean focused) {
-                    super.setFocus(focused);
+                public void setFocused(boolean focused) {
+                    super.setFocused(focused);
                     EditListScreen.this.activeTextField = focused ? this : null;
                 }
             };
@@ -221,27 +224,30 @@ public class EditListScreen extends Screen {
                 }
             });
             this.textField.setValue(holder.getValue());
-            this.textField.setFocus(withFocus);
+            this.textField.setFocused(withFocus);
 
             final List<FormattedCharSequence> tooltip = EditListScreen.this.minecraft.font.split(Component.translatable("configmenusforge.gui.tooltip.remove"), 200);
-            this.deleteButton = new IconButton(0, 0, 20, 20, 100, 0, ConfigScreen.ICONS_LOCATION, button -> {
+            this.deleteButton = new MutableIconButton(0, 0, 20, 20, 100, 0, ConfigScreen.ICONS_LOCATION, button -> {
                 EditListScreen.this.values.remove(holder);
                 list.removeEntry(this);
                 EditListScreen.this.clearInvalid(this);
-            }, (button, matrixStack, mouseX, mouseY) -> {
-                if (button.active) {
-                    EditListScreen.this.activeTooltip = tooltip;
+            }) {
+
+                @Override
+                public void renderWidget(PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
+                    super.renderWidget(poseStack, mouseX, mouseY, partialTicks);
+                    if (this.active) EditListScreen.this.activeTooltip = tooltip;
                 }
-            });
+            };
         }
 
         @Override
         public void render(PoseStack poseStack, int index, int entryTop, int entryLeft, int rowWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float partialTicks) {
-            this.textField.x = entryLeft;
-            this.textField.y = entryTop + 1;
+            this.textField.setX(entryLeft);
+            this.textField.setY(entryTop + 1);
             this.textField.render(poseStack, mouseX, mouseY, partialTicks);
-            this.deleteButton.x = entryLeft + rowWidth - 21;
-            this.deleteButton.y = entryTop;
+            this.deleteButton.setX(entryLeft + rowWidth - 21);
+            this.deleteButton.setY(entryTop);
             this.deleteButton.render(poseStack, mouseX, mouseY, partialTicks);
         }
 

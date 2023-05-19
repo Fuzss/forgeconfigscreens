@@ -2,7 +2,6 @@ package fuzs.forgeconfigscreens.client.gui.screens;
 
 import com.electronwill.nightconfig.core.io.WritingMode;
 import com.electronwill.nightconfig.toml.TomlFormat;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.mojang.blaze3d.vertex.PoseStack;
 import fuzs.forgeconfigscreens.ForgeConfigScreens;
@@ -24,18 +23,13 @@ import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FormattedCharSequence;
-import net.minecraft.world.level.storage.LevelStorageException;
-import net.minecraft.world.level.storage.LevelStorageSource;
-import net.minecraft.world.level.storage.LevelSummary;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.loading.FMLConfig;
 import net.minecraftforge.fml.loading.FileUtils;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -45,7 +39,6 @@ import java.util.stream.Collectors;
 @SuppressWarnings("ConstantConditions")
 public class SelectConfigScreen extends Screen {
 	private final Screen lastScreen;
-	private final ResourceLocation background;
 	private final Component displayName;
 	private final Map<ModConfig, Map<Object, IEntryData>> configs;
 	private List<FormattedCharSequence> activeTooltip;
@@ -58,33 +51,17 @@ public class SelectConfigScreen extends Screen {
 	private Button fileButton;
 	private AnimatedIconButton tinyJumperButton;
 	private boolean serverPermissions;
-	private final List<LevelSummary> levelList;
 
-	public SelectConfigScreen(Screen lastScreen, Component displayName, ResourceLocation optionsBackground, Set<ModConfig> configs) {
+	public SelectConfigScreen(Screen lastScreen, Component displayName, Set<ModConfig> configs) {
 		super(Component.translatable("configmenusforge.gui.select.title", displayName));
 		this.lastScreen = lastScreen;
 		this.displayName = displayName;
-		this.background = optionsBackground;
 		this.configs = configs.stream().collect(Collectors.collectingAndThen(Collectors.toMap(Function.identity(), IEntryData::makeValueToDataMap), ImmutableMap::copyOf));
-		// this.minecraft hasn't been set yet
-		Minecraft minecraft = Minecraft.getInstance();
-		this.levelList = this.getLevelList(minecraft);
-		this.initServerPermissions(minecraft);
 	}
 
-	private List<LevelSummary> getLevelList(Minecraft minecraft) {
-		LevelStorageSource levelstoragesource = minecraft.getLevelSource();
-		List<LevelSummary> list = null;
-		// will trigger OverlappingFileLockException when called and a world is loaded
-		if (minecraft.getConnection() == null) {
-			try {
-				list = levelstoragesource.getLevelList();
-				Collections.sort(list);
-			} catch (LevelStorageException levelstorageexception) {
-				ForgeConfigScreens.LOGGER.error("Couldn't load level list", levelstorageexception);
-			}
-		}
-		return list != null ? ImmutableList.copyOf(list) : ImmutableList.of();
+	@Override
+	public void added() {
+		this.initServerPermissions();
 	}
 
 	@Override
@@ -107,28 +84,30 @@ public class SelectConfigScreen extends Screen {
 				return super.mouseClicked(mouseX, mouseY, button);
 			}
 		};
-		this.searchBox.setResponder(query -> this.list.refreshList(query));
+		this.searchBox.setResponder(filter -> this.list.updateFilter(filter));
 		this.addWidget(this.searchBox);
-		this.addRenderableWidget(new Button(this.width / 2 + 4, this.height - 28, 150, 20, CommonComponents.GUI_DONE, button -> this.onClose()));
-		this.openButton = this.addRenderableWidget(new Button(this.width / 2 - 50 - 104, this.height - 52, 100, 20, Component.translatable("configmenusforge.gui.select.edit"), button1 -> {
-			final ConfigSelectionList.ConfigListEntry selected = this.list.getSelected();
-			if (selected != null) {
-				selected.openConfig();
+		this.addRenderableWidget(Button.builder(CommonComponents.GUI_DONE, button -> {
+			this.onClose();
+		}).bounds(this.width / 2 + 4, this.height - 28, 150, 20).build());
+		this.openButton = this.addRenderableWidget(Button.builder(Component.translatable("configmenusforge.gui.select.edit"), button1 -> {
+			final ConfigSelectionList.Entry selected = this.list.getSelected();
+			if (selected instanceof ConfigSelectionList.ConfigListEntry entry) {
+				entry.openConfig();
 			}
-		}));
-		this.selectButton = this.addRenderableWidget(new Button(this.width / 2 - 50 - 104, this.height - 52, 100, 20, Component.translatable("configmenusforge.gui.select.world.edit"), button1 -> {
-			final ConfigSelectionList.ConfigListEntry selected = this.list.getSelected();
-			if (selected != null) {
-				selected.openConfig();
+		}).bounds(this.width / 2 - 50 - 104, this.height - 52, 100, 20).build());
+		this.selectButton = this.addRenderableWidget(Button.builder(Component.translatable("configmenusforge.gui.select.world.edit"), button1 -> {
+			final ConfigSelectionList.Entry selected = this.list.getSelected();
+			if (selected instanceof ConfigSelectionList.ConfigListEntry entry) {
+				entry.openConfig();
 			}
-		}));
-		this.restoreButton = this.addRenderableWidget(new Button(this.width / 2 - 50, this.height - 52, 100, 20, Component.translatable("configmenusforge.gui.select.restore"), button1 -> {
-			final ConfigSelectionList.ConfigListEntry selected = this.list.getSelected();
-			if (selected != null) {
+		}).bounds(this.width / 2 - 50 - 104, this.height - 52, 100, 20).build());
+		this.restoreButton = this.addRenderableWidget(Button.builder(Component.translatable("configmenusforge.gui.select.restore"), button1 -> {
+			final ConfigSelectionList.Entry selected = this.list.getSelected();
+			if (selected instanceof ConfigSelectionList.ConfigListEntry entry) {
 				Component component2 = Component.translatable("configmenusforge.gui.message.restore.warning").withStyle(ChatFormatting.RED);
 				Screen confirmScreen = new ConfirmScreen(result1 -> {
 					if (result1) {
-						final ModConfig config = selected.getConfig();
+						final ModConfig config = entry.getConfig();
 						this.getValueToDataMap(config).values().forEach(data -> {
 							data.resetCurrentValue();
 							data.saveConfigValue();
@@ -139,11 +118,11 @@ public class SelectConfigScreen extends Screen {
 				}, Component.translatable("configmenusforge.gui.message.restore.title"), component2);
 				this.minecraft.setScreen(confirmScreen);
 			}
-		}));
-		this.copyButton = this.addRenderableWidget(new Button(this.width / 2 - 50 + 104, this.height - 52, 100, 20, Component.translatable("configmenusforge.gui.select.copy"), button -> {
-			final ConfigSelectionList.ConfigListEntry selected = this.list.getSelected();
-			if (selected != null) {
-				final ModConfig config = selected.getConfig();
+		}).bounds(this.width / 2 - 50, this.height - 52, 100, 20).build());
+		this.copyButton = this.addRenderableWidget(Button.builder(Component.translatable("configmenusforge.gui.select.copy"), button -> {
+			final ConfigSelectionList.Entry selected = this.list.getSelected();
+			if (selected instanceof ConfigSelectionList.ConfigListEntry entry) {
+				final ModConfig config = entry.getConfig();
 				Path destination = ModLoaderEnvironment.getGameDir().resolve(FMLConfig.defaultConfigPath()).resolve(config.getFileName());
 				Component component2 = Files.exists(destination) ? Component.translatable("configmenusforge.gui.message.copy.warning").withStyle(ChatFormatting.RED) : Component.translatable("configmenusforge.gui.message.copy.description");
 				this.minecraft.setScreen(new ConfirmScreen(result -> {
@@ -162,18 +141,18 @@ public class SelectConfigScreen extends Screen {
 					this.minecraft.setScreen(this);
 				}, Component.translatable("configmenusforge.gui.message.copy.title"), component2));
 			}
-		}));
-		this.fileButton = this.addRenderableWidget(new Button(this.width / 2 - 154, this.height - 28, 150, 20, Component.translatable("configmenusforge.gui.select.open"), button -> {
-			final ConfigSelectionList.ConfigListEntry selected = this.list.getSelected();
-			if (selected != null) {
-				final Style style = Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_FILE, selected.getConfig().getFullPath().toAbsolutePath().toString()));
+		}).bounds(this.width / 2 - 50 + 104, this.height - 52, 100, 20).build());
+		this.fileButton = this.addRenderableWidget(Button.builder(Component.translatable("configmenusforge.gui.select.open"), button -> {
+			final ConfigSelectionList.Entry selected = this.list.getSelected();
+			if (selected instanceof ConfigSelectionList.ConfigListEntry entry) {
+				final Style style = Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_FILE, entry.getConfig().getFullPath().toAbsolutePath().toString()));
 				this.handleComponentClicked(style);
 			}
-		}));
+		}).bounds(this.width / 2 - 154, this.height - 28, 150, 20).build());
 		this.updateButtonStatus(false);
-		this.list = new ConfigSelectionList(this, this.minecraft, this.width, this.height, 50, this.height - 60, 36, this.searchBox.getValue());
+		this.list = new ConfigSelectionList(this, this.minecraft, this.width, this.height, 50, this.height - 60, 36, this.searchBox.getValue(), this.list);
 		this.addWidget(this.list);
-		this.tinyJumperButton = this.addRenderableWidget(ScreenUtil.makeModPageButton(this.width / 2 + 126, 22, this.font, this::handleComponentClicked, this::renderTooltip));
+		this.tinyJumperButton = this.addRenderableWidget(ScreenUtil.makeModPageButton(this, this.width / 2 + 126, 22, this.font, this::handleComponentClicked));
 		this.setInitialFocus(this.searchBox);
 	}
 
@@ -206,14 +185,16 @@ public class SelectConfigScreen extends Screen {
 
 	public void updateButtonStatus(boolean active) {
 		if (this.list != null && active) {
-			final ConfigSelectionList.ConfigListEntry selected = this.list.getSelected();
-			final boolean needsWorldInstance = selected.needsWorldInstance();
-			this.openButton.visible = !needsWorldInstance;
-			this.selectButton.visible = needsWorldInstance;
-			this.openButton.active = true;
-			this.restoreButton.active = !needsWorldInstance && selected.mayResetValue();
-			this.fileButton.active = !needsWorldInstance && !selected.onMultiplayerServer();
-			this.copyButton.active = !needsWorldInstance;
+			final ConfigSelectionList.Entry selected = this.list.getSelected();
+			if (selected instanceof ConfigSelectionList.ConfigListEntry entry) {
+				final boolean needsWorldInstance = entry.needsWorldInstance();
+				this.openButton.visible = !needsWorldInstance;
+				this.selectButton.visible = needsWorldInstance;
+				this.openButton.active = true;
+				this.restoreButton.active = !needsWorldInstance && entry.mayResetValue();
+				this.fileButton.active = !needsWorldInstance && !entry.onMultiplayerServer();
+				this.copyButton.active = !needsWorldInstance;
+			}
 		} else {
 			this.openButton.visible = true;
 			this.openButton.active = false;
@@ -232,10 +213,6 @@ public class SelectConfigScreen extends Screen {
 		return this.displayName;
 	}
 
-	public ResourceLocation getBackground() {
-		return this.background;
-	}
-
 	public Set<ModConfig> getConfigs() {
 		return this.configs.keySet();
 	}
@@ -244,11 +221,8 @@ public class SelectConfigScreen extends Screen {
 		return this.configs.get(config);
 	}
 
-	public List<LevelSummary> getLevelList() {
-		return this.levelList;
-	}
-
-	private void initServerPermissions(Minecraft minecraft) {
+	private void initServerPermissions() {
+		Minecraft minecraft = Minecraft.getInstance();
 		if (minecraft.getConnection() != null) {
 			if (minecraft.isLocalServer()) {
 				this.serverPermissions = true;

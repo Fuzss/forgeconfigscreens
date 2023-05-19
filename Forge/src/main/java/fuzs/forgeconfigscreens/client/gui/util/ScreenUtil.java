@@ -5,13 +5,10 @@ import fuzs.forgeconfigscreens.ForgeConfigScreens;
 import fuzs.forgeconfigscreens.client.gui.widget.AnimatedIconButton;
 import joptsimple.internal.Strings;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.client.sounds.SoundManager;
-import net.minecraft.network.chat.ClickEvent;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.FormattedText;
-import net.minecraft.network.chat.Style;
+import net.minecraft.network.chat.*;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.FormattedCharSequence;
@@ -28,17 +25,19 @@ public class ScreenUtil {
     private static final Component INFO_2_TOOLTIP = Component.translatable("configmenusforge.gui.info.2", ForgeConfigScreens.MOD_NAME);
     private static final Component INFO_3_TOOLTIP = Component.translatable("configmenusforge.gui.info.3");
 
-    public static AnimatedIconButton makeModPageButton(int posX, int posY, Font font, Consumer<Style> handleComponentClicked, ITooltipRenderer renderTooltip) {
+    public static AnimatedIconButton makeModPageButton(Screen screen, int posX, int posY, Font font, Consumer<Style> handleComponentClicked) {
+        final List<FormattedCharSequence> tooltip = Stream.of(INFO_1_TOOLTIP, INFO_2_TOOLTIP, INFO_3_TOOLTIP).map(line -> font.split(line, 200)).flatMap(List::stream).collect(Collectors.toList());
         return new AnimatedIconButton(posX, posY, 20, 20, 0, 0, TINY_JUMPER_LOCATION, button -> {
             Style style = Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, ForgeConfigScreens.MOD_URL));
             handleComponentClicked.accept(style);
-        }, (Button button, PoseStack poseStack, int mouseX, int mouseY) -> {
-            final List<FormattedCharSequence> tooltip = Stream.of(INFO_1_TOOLTIP, INFO_2_TOOLTIP, INFO_3_TOOLTIP)
-                    .map(line -> font.split(line, 200))
-                    .flatMap(List::stream)
-                    .collect(Collectors.toList());
-            renderTooltip.render(poseStack, tooltip, mouseX, mouseY);
         }) {
+
+            @Override
+            public void renderWidget(PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
+                super.renderWidget(poseStack, mouseX, mouseY, partialTicks);
+                if (this.isHoveredOrFocused()) screen.renderTooltip(poseStack, tooltip, mouseX, mouseY);
+            }
+
             @Override
             public void playDownSound(SoundManager manager) {
                 manager.play(SimpleSoundInstance.forUI(SoundEvents.VILLAGER_AMBIENT, 1.0F));
@@ -74,27 +73,12 @@ public class ScreenUtil {
         return Strings.join(words, " ").replaceAll("\\s++", " ");
     }
 
-    public static String getTruncatedText(Font font, String component, int maxWidth) {
-        // trim component when too long
-        if (font.width(component) > maxWidth) {
-            return font.plainSubstrByWidth(component, maxWidth - font.width("...")) + "...";
-        } else {
-            return component;
-        }
-    }
-
     public static FormattedText getTruncatedText(Font font, Component component, int maxWidth, Style style) {
         // trim component when too long
         if (font.width(component) > maxWidth) {
-            return FormattedText.composite(font.getSplitter().headByWidth(component, maxWidth - font.width("..."), style), FormattedText.of("..."));
+            return FormattedText.composite(font.getSplitter().headByWidth(component, maxWidth - font.width(CommonComponents.ELLIPSIS), style), CommonComponents.ELLIPSIS);
         } else {
             return component;
         }
-    }
-
-    @FunctionalInterface
-    public interface ITooltipRenderer {
-
-        void render(PoseStack poseStack, List<? extends FormattedCharSequence> tooltips, int mouseX, int mouseY);
     }
 }

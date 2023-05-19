@@ -122,7 +122,7 @@ public class SelectConfigWorldScreen extends Screen {
       this.updateButtonStatus(false);
       this.list = new ConfigWorldSelectionList(this, this.minecraft, this.width, this.height, 50, this.height - 60, 36, this.searchBox.getValue(), this.levelList);
       this.addWidget(this.list);
-      this.tinyJumperButton = this.addRenderableWidget(ScreenUtil.makeModPageButton(this.width / 2 + 126, 22, this.font, this::handleComponentClicked, this::renderTooltip));
+      this.tinyJumperButton = this.addRenderableWidget(ScreenUtil.makeModPageButton(this, this.width / 2 + 126, 22, this.font, this::handleComponentClicked));
       this.setInitialFocus(this.searchBox);
    }
 

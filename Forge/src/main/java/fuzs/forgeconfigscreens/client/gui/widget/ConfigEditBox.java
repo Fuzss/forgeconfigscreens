@@ -25,12 +25,12 @@ public class ConfigEditBox extends EditBox {
     }
 
     @Override
-    public void setFocus(boolean focused) {
-        super.setFocus(focused);
+    public void setFocused(boolean focused) {
+        super.setFocused(focused);
         if (focused) {
             final ConfigEditBox activeTextField = this.getActiveTextField.get();
             if (activeTextField != null && activeTextField != this) {
-                activeTextField.setFocus(false);
+                activeTextField.setFocused(false);
             }
             this.setActiveTextField.accept(this);
         }
@@ -47,14 +47,14 @@ public class ConfigEditBox extends EditBox {
     }
 
     @Override
-    public void renderButton(PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
-        super.renderButton(poseStack, mouseX, mouseY, partialTicks);
+    public void renderWidget(PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
+        super.renderWidget(poseStack, mouseX, mouseY, partialTicks);
         if (this.invalid && this.visible && this.bordered) {
             final int color = 16711680 | 255 << 24;
-            fill(poseStack, this.x - 1, this.y - 1, this.x + this.width + 1, this.y, color);
-            fill(poseStack, this.x - 1, this.y - 1, this.x, this.y + this.height + 1, color);
-            fill(poseStack, this.x + this.width, this.y - 1, this.x + this.width + 1, this.y + this.height + 1, color);
-            fill(poseStack, this.x - 1, this.y + this.height, this.x + this.width + 1, this.y + this.height + 1, color);
+            fill(poseStack, this.getX() - 1, this.getY() - 1, this.getX() + this.width + 1, this.getY(), color);
+            fill(poseStack, this.getX() - 1, this.getY() - 1, this.getX(), this.getY() + this.height + 1, color);
+            fill(poseStack, this.getX() + this.width, this.getY() - 1, this.getX() + this.width + 1, this.getY() + this.height + 1, color);
+            fill(poseStack, this.getX() - 1, this.getY() + this.height, this.getX() + this.width + 1, this.getY() + this.height + 1, color);
         }
     }
 

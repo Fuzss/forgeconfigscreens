@@ -9,7 +9,7 @@ import fuzs.forgeconfigscreens.client.gui.data.EntryData;
 import fuzs.forgeconfigscreens.client.gui.data.IEntryData;
 import fuzs.forgeconfigscreens.client.gui.util.ScreenUtil;
 import fuzs.forgeconfigscreens.client.gui.widget.ConfigEditBox;
-import fuzs.forgeconfigscreens.client.gui.widget.IconButton;
+import fuzs.forgeconfigscreens.client.gui.widget.MutableIconButton;
 import fuzs.forgeconfigscreens.client.util.ServerConfigUploader;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.Font;
@@ -209,48 +209,40 @@ public abstract class ConfigScreen extends Screen {
                 Screen screen = lastScreens.get(size - 1 - i);
                 final boolean otherScreen = screen != this;
                 final Component title = i == 0 && lastScreens.size() > maxSize ? Component.literal(". . .") : screen.getTitle();
-                buttons.add(new Button(0, 1, Sub.this.font.width(title) + 4, 20, title, button -> {
-                    if (otherScreen) {
-                        Sub.this.minecraft.setScreen(screen);
-                    }
-                }, (Button button, PoseStack poseStack, int mouseX, int mouseY) -> {
-                    if (otherScreen && button.active) {
-                        // move down as this is right at screen top
-                        this.renderTooltip(poseStack, CommonComponents.GUI_BACK, mouseX, mouseY + 24);
-                    }
-                }) {
+                buttons.add(Button.builder(title, button -> {
+                    if (otherScreen) Sub.this.minecraft.setScreen(screen);
+                }).bounds(0, 1, Sub.this.font.width(title) + 4, 20).build(builder -> new Button(builder) {
 
                     @Override
-                    public void renderButton(PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
+                    public void renderWidget(PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
                         // yellow when hovered
                         int color = otherScreen && this.isHoveredOrFocused() ? 16777045 : 16777215;
-                        drawCenteredString(poseStack, Sub.this.font, this.getMessage(), this.x + this.width / 2, this.y + (this.height - 8) / 2, color);
-                        if (this.isHoveredOrFocused()) {
-                            this.renderToolTip(poseStack, mouseX, mouseY);
+                        drawCenteredString(poseStack, Sub.this.font, this.getMessage(), this.getX() + this.width / 2, this.getY() + (this.height - 8) / 2, color);
+                        if (this.isHoveredOrFocused() && otherScreen && this.active) {
+                            // move down as this is right at screen top
+                            Sub.this.renderTooltip(poseStack, CommonComponents.GUI_BACK, mouseX, mouseY + 24);
                         }
                     }
 
                     @Override
                     public void playDownSound(SoundManager soundManager) {
-                        if (otherScreen) {
-                            super.playDownSound(soundManager);
-                        }
+                        if (otherScreen) super.playDownSound(soundManager);
                     }
-                });
+                }));
                 if (i < size - 1) {
-                    buttons.add(new Button(0, 1, Sub.this.font.width(">") + 4, 20, Component.literal(">"), button -> {
-                    }) {
+                    buttons.add(Button.builder(Component.literal(">"), button -> {
+                    }).bounds(0, 1, Sub.this.font.width(">") + 4, 20).build(builder -> new Button(builder) {
 
                         @Override
-                        public void renderButton(PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
-                            drawCenteredString(poseStack, Sub.this.font, this.getMessage(), this.x + this.width / 2, this.y + (this.height - 8) / 2, 16777215);
+                        public void renderWidget(PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
+                            drawCenteredString(poseStack, Sub.this.font, this.getMessage(), this.getX() + this.width / 2, this.getY() + (this.height - 8) / 2, 16777215);
                         }
 
                         @Override
                         public void playDownSound(SoundManager soundManager) {
 
                         }
-                    });
+                    }));
                 }
             }
             this.setButtonPosX(buttons);
@@ -270,7 +262,7 @@ public abstract class ConfigScreen extends Screen {
         private void setButtonPosX(List<Button> buttons) {
             int posX = (this.width - buttons.stream().mapToInt(AbstractWidget::getWidth).sum()) / 2;
             for (Button navigationButton : buttons) {
-                navigationButton.x = posX;
+                navigationButton.setX(posX);
                 posX += navigationButton.getWidth();
             }
         }
@@ -294,7 +286,7 @@ public abstract class ConfigScreen extends Screen {
     protected void init() {
         super.init();
         boolean focus = this.searchTextField != null && this.searchTextField.isFocused();
-        this.searchTextField = new EditBox(this.font, this.width / 2 - 121, 22, 242, 20, this.searchTextField, TextComponent.EMPTY) {
+        this.searchTextField = new EditBox(this.font, this.width / 2 - 121, 22, 242, 20, this.searchTextField, CommonComponents.EMPTY) {
 //            private static final Component SEARCH_COMPONENT = Component.translatable("configmenusforge.gui.search").withStyle(ChatFormatting.GRAY);
 
             @Override
@@ -315,37 +307,52 @@ public abstract class ConfigScreen extends Screen {
 //            }
         };
         this.searchTextField.setResponder(query -> this.updateList(query, true));
-        this.searchTextField.setFocus(focus);
+        this.searchTextField.setFocused(focus);
         this.list = new ConfigList(this.getConfigListEntries(this.searchTextField.getValue()));
         this.addWidget(this.list);
         this.addWidget(this.searchTextField);
-        this.reverseButton = this.addRenderableWidget(new IconButton(this.width / 2 - 126 - 20, 22, 20, 20, this.buttonData[0] == 1 ? 20 : 0, 0, ICONS_LOCATION, button -> {
+        this.reverseButton = this.addRenderableWidget(new MutableIconButton(this.width / 2 - 126 - 20, 22, 20, 20, this.buttonData[0] == 1 ? 20 : 0, 0, ICONS_LOCATION, button -> {
             this.buttonData[0] = (this.buttonData[0] + 1) % 2;
             this.updateList(true);
-            ((IconButton) button).setTexture(this.buttonData[0] == 1 ? 20 : 0, 0);
-        }, (button, poseStack, mouseX, mouseY) -> {
-            if (button.active) {
-                this.renderTooltip(poseStack, this.buttonData[0] == 1 ? SORTING_ZA_TOOLTIP : SORTING_AZ_TOOLTIP, mouseX, mouseY);
+            ((MutableIconButton) button).setTexture(this.buttonData[0] == 1 ? 20 : 0, 0);
+        }) {
+
+            @Override
+            public void renderWidget(PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
+                super.renderWidget(poseStack, mouseX, mouseY, partialTicks);
+                if (this.active && this.isHoveredOrFocused()) {
+                    ConfigScreen.this.renderTooltip(poseStack, ConfigScreen.this.buttonData[0] == 1 ? SORTING_ZA_TOOLTIP : SORTING_AZ_TOOLTIP, mouseX, mouseY);
+                }
             }
-        }));
-        this.filterButton = this.addRenderableWidget(new IconButton(this.width / 2 + 126, 22, 20, 20, EntryFilter.values()[this.buttonData[1]].getTextureX(), 0, ICONS_LOCATION, button -> {
+        });
+        this.filterButton = this.addRenderableWidget(new MutableIconButton(this.width / 2 + 126, 22, 20, 20, EntryFilter.values()[this.buttonData[1]].getTextureX(), 0, ICONS_LOCATION, button -> {
             this.buttonData[1] = EntryFilter.cycle(this.buttonData[1], false, Screen.hasShiftDown());
             this.updateList(true);
-            ((IconButton) button).setTexture(EntryFilter.values()[this.buttonData[1]].getTextureX(), 0);
-        }, (button, poseStack, mouseX, mouseY) -> {
-            if (button.active) {
-                this.renderTooltip(poseStack, EntryFilter.values()[this.buttonData[1]].getMessage(), mouseX, mouseY);
+            ((MutableIconButton) button).setTexture(EntryFilter.values()[this.buttonData[1]].getTextureX(), 0);
+        }) {
+
+            @Override
+            public void renderWidget(PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
+                super.renderWidget(poseStack, mouseX, mouseY, partialTicks);
+                if (this.active && this.isHoveredOrFocused()) {
+                    ConfigScreen.this.renderTooltip(poseStack, EntryFilter.values()[ConfigScreen.this.buttonData[1]].getMessage(), mouseX, mouseY);
+                }
             }
-        }));
-        this.searchFilterButton = this.addRenderableWidget(new IconButton(this.width / 2 + 126 + 24, 22, 20, 20, EntryFilter.values()[this.buttonData[2]].getTextureX(), 0, ICONS_LOCATION, button -> {
+        });
+        this.searchFilterButton = this.addRenderableWidget(new MutableIconButton(this.width / 2 + 126 + 24, 22, 20, 20, EntryFilter.values()[this.buttonData[2]].getTextureX(), 0, ICONS_LOCATION, button -> {
             this.buttonData[2] = EntryFilter.cycle(this.buttonData[2], true, Screen.hasShiftDown());
             this.updateList(true);
-            ((IconButton) button).setTexture(EntryFilter.values()[this.buttonData[2]].getTextureX(), 0);
-        }, (button, poseStack, mouseX, mouseY) -> {
-            if (button.active) {
-                this.renderTooltip(poseStack, EntryFilter.values()[this.buttonData[2]].getMessage(), mouseX, mouseY);
+            ((MutableIconButton) button).setTexture(EntryFilter.values()[this.buttonData[2]].getTextureX(), 0);
+        }) {
+
+            @Override
+            public void renderWidget(PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
+                super.renderWidget(poseStack, mouseX, mouseY, partialTicks);
+                if (this.active && this.isHoveredOrFocused()) {
+                    ConfigScreen.this.renderTooltip(poseStack, EntryFilter.values()[ConfigScreen.this.buttonData[2]].getMessage(), mouseX, mouseY);
+                }
             }
-        }));
+        });
     }
 
     public void updateList(boolean resetScroll) {
@@ -408,12 +415,6 @@ public abstract class ConfigScreen extends Screen {
         if (this.activeTooltip != null && this.tooltipTicks >= 10) {
             this.renderTooltip(poseStack, this.activeTooltip, mouseX, mouseY);
         }
-        this.children().forEach(o ->
-        {
-            if (o instanceof Button.OnTooltip) {
-                ((Button.OnTooltip) o).onTooltip((Button) o, poseStack, mouseX, mouseY);
-            }
-        });
     }
 
     void drawBaseTitle(PoseStack poseStack) {
@@ -654,12 +655,12 @@ public abstract class ConfigScreen extends Screen {
         public CategoryEntry(EntryData.CategoryEntryData data, String searchHighlight) {
             super(data, searchHighlight);
             // should really be truncated when too long but haven't found a way to convert result back to component for using with button while preserving formatting
-            this.button = new Button(10, 5, 260, 20, this.getTitle(), button -> {
+            this.button = Button.builder(this.getTitle(), button -> {
                 // values are usually preserved, so here we force a reset
                 ConfigScreen.this.searchTextField.setValue("");
-                ConfigScreen.this.searchTextField.setFocus(false);
+                ConfigScreen.this.searchTextField.setFocused(false);
                 ConfigScreen.this.minecraft.setScreen(data.getScreen());
-            });
+            }).bounds(10, 5, 260, 20).build();
         }
 
         @Override
@@ -682,8 +683,8 @@ public abstract class ConfigScreen extends Screen {
 
         @Override
         public void render(PoseStack poseStack, int index, int entryTop, int entryLeft, int rowWidth, int entryHeight, int mouseX, int mouseY, boolean selected, float partialTicks) {
-            this.button.x = entryLeft - 1;
-            this.button.y = entryTop;
+            this.button.setX(entryLeft - 1);
+            this.button.setY(entryTop);
             this.button.render(poseStack, mouseX, mouseY, partialTicks);
             // only sets tooltip and hovered flag for button is updated on rendering
             super.render(poseStack, index, entryTop, entryLeft, rowWidth, entryHeight, mouseX, mouseY, selected, partialTicks);
@@ -719,15 +720,18 @@ public abstract class ConfigScreen extends Screen {
             FormattedText truncatedTitle = ScreenUtil.getTruncatedText(ConfigScreen.this.font, this.getTitle(), 260 - 70, Style.EMPTY);
             this.visualTitle = Language.getInstance().getVisualOrder(truncatedTitle);
             final List<FormattedCharSequence> tooltip = ConfigScreen.this.font.split(RESET_TOOLTIP, 200);
-            this.resetButton = new IconButton(0, 0, 20, 20, 140, 0, ICONS_LOCATION, button -> {
+            this.resetButton = new MutableIconButton(0, 0, 20, 20, 140, 0, ICONS_LOCATION, button -> {
                 data.resetCurrentValue();
                 this.onConfigValueChanged(data.getCurrentValue(), true);
                 ConfigScreen.this.updateList(false);
-            }, (button, matrixStack, mouseX, mouseY) -> {
-                if (button.active) {
-                    ConfigScreen.this.setActiveTooltip(tooltip);
+            }) {
+
+                @Override
+                public void renderWidget(PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
+                    super.renderWidget(poseStack, mouseX, mouseY, partialTicks);
+                    if (this.active && this.isHoveredOrFocused()) ConfigScreen.this.setActiveTooltip(tooltip);
                 }
-            });
+            };
             this.resetButton.active = data.mayResetValue();
             this.children.add(this.resetButton);
         }
@@ -764,7 +768,7 @@ public abstract class ConfigScreen extends Screen {
                 final Component pathComponent = configData.getFullPath().stream()
                         .map(ScreenUtil::toFormattedComponent)
                         .reduce((o1, o2) -> Component.literal("").append(o1).append(" > ").append(o2))
-                        .orElse(TextComponent.EMPTY);
+                        .orElse(Component.empty());
                 lines.addAll(font.getSplitter().splitLines(Component.translatable("configmenusforge.gui.tooltip.path", pathComponent).withStyle(ChatFormatting.GRAY), 200, Style.EMPTY));
             }
         }
@@ -799,8 +803,8 @@ public abstract class ConfigScreen extends Screen {
             // yellow when hovered
             int color = this.isHovered(mouseX, mouseY) ? 16777045 : 16777215;
             ConfigScreen.this.font.drawShadow(poseStack, this.visualTitle, entryLeft, entryTop + 6, color);
-            this.resetButton.x = entryLeft + rowWidth - 21;
-            this.resetButton.y = entryTop;
+            this.resetButton.setX(entryLeft + rowWidth - 21);
+            this.resetButton.setY(entryTop);
             this.resetButton.render(poseStack, mouseX, mouseY, partialTicks);
             super.render(poseStack, index, entryTop, entryLeft, rowWidth, entryHeight, mouseX, mouseY, hovered, partialTicks);
         }
@@ -862,8 +866,8 @@ public abstract class ConfigScreen extends Screen {
         @Override
         public void render(PoseStack matrixStack, int index, int entryTop, int entryLeft, int rowWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float partialTicks) {
             super.render(matrixStack, index, entryTop, entryLeft, rowWidth, entryHeight, mouseX, mouseY, hovered, partialTicks);
-            this.textField.x = entryLeft + rowWidth - 66;
-            this.textField.y = entryTop + 1;
+            this.textField.setX(entryLeft + rowWidth - 66);
+            this.textField.setY(entryTop + 1);
             this.textField.render(matrixStack, mouseX, mouseY, partialTicks);
         }
 
@@ -881,19 +885,19 @@ public abstract class ConfigScreen extends Screen {
 
         public BooleanEntry(EntryData.ConfigEntryData<Boolean> configEntryData, String searchHighlight) {
             super(configEntryData, searchHighlight);
-            this.button = new Button(10, 5, 44, 20, CommonComponents.optionStatus(configEntryData.getCurrentValue()), button -> {
+            this.button = Button.builder(CommonComponents.optionStatus(configEntryData.getCurrentValue()), button -> {
                 final boolean newValue = !configEntryData.getCurrentValue();
                 configEntryData.setCurrentValue(newValue);
                 this.onConfigValueChanged(newValue, false);
-            });
+            }).bounds(10, 5, 44, 20).build();
             this.children().add(this.button);
         }
 
         @Override
         public void render(PoseStack matrixStack, int index, int entryTop, int entryLeft, int rowWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float partialTicks) {
             super.render(matrixStack, index, entryTop, entryLeft, rowWidth, entryHeight, mouseX, mouseY, hovered, partialTicks);
-            this.button.x = entryLeft + rowWidth - 67;
-            this.button.y = entryTop;
+            this.button.setX(entryLeft + rowWidth - 67);
+            this.button.setY(entryTop);
             this.button.render(matrixStack, mouseX, mouseY, partialTicks);
         }
 
@@ -909,7 +913,7 @@ public abstract class ConfigScreen extends Screen {
 
         public EditScreenEntry(EntryData.ConfigEntryData<T> configEntryData, String searchHighlight, String type) {
             super(configEntryData, searchHighlight);
-            this.button = new Button(10, 5, 44, 20, Component.translatable("configmenusforge.gui.edit"), button -> {
+            this.button = Button.builder(Component.translatable("configmenusforge.gui.edit"), button -> {
                 // safety precaution for dealing with lists
                 try {
                     ConfigScreen.this.minecraft.setScreen(this.makeEditScreen(type, configEntryData.getCurrentValue(), configEntryData.getValueSpec(), currentValue -> {
@@ -920,7 +924,7 @@ public abstract class ConfigScreen extends Screen {
                     ForgeConfigScreens.LOGGER.warn("Unable to handle list entry containing class type {}", type, e);
                     button.active = false;
                 }
-            });
+            }).bounds(10, 5, 44, 20).build();
             this.children().add(this.button);
         }
 
@@ -932,8 +936,8 @@ public abstract class ConfigScreen extends Screen {
         @Override
         public void render(PoseStack matrixStack, int index, int entryTop, int entryLeft, int rowWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float partialTicks) {
             super.render(matrixStack, index, entryTop, entryLeft, rowWidth, entryHeight, mouseX, mouseY, hovered, partialTicks);
-            this.button.x = entryLeft + rowWidth - 67;
-            this.button.y = entryTop;
+            this.button.setX(entryLeft + rowWidth - 67);
+            this.button.setY(entryTop);
             this.button.render(matrixStack, mouseX, mouseY, partialTicks);
         }
     }

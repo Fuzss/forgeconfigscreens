@@ -8,25 +8,36 @@ import fuzs.forgeconfigscreens.client.gui.screens.ConfigScreen;
 import fuzs.forgeconfigscreens.client.gui.screens.SelectConfigScreen;
 import fuzs.forgeconfigscreens.client.gui.screens.SelectConfigWorldScreen;
 import net.minecraft.ChatFormatting;
+import net.minecraft.CrashReport;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.client.gui.components.ObjectSelectionList;
+import net.minecraft.client.gui.screens.LoadingDotsText;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.worldselection.CreateWorldScreen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.storage.LevelStorageException;
+import net.minecraft.world.level.storage.LevelStorageSource;
+import net.minecraft.world.level.storage.LevelSummary;
 import net.minecraftforge.fml.config.ModConfig;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 
-public class ConfigSelectionList extends ObjectSelectionList<ConfigSelectionList.ConfigListEntry> {
+public class ConfigSelectionList extends ObjectSelectionList<ConfigSelectionList.Entry> {
 	private static final ResourceLocation ICON_LOCATION = ForgeConfigScreens.id("textures/misc/config.png");
 	private static final ResourceLocation ICON_DISABLED_LOCATION = ForgeConfigScreens.id("textures/misc/disabled_config.png");
 	private static final ResourceLocation ICON_OVERLAY_LOCATION = new ResourceLocation("textures/gui/world_selection.png");
@@ -36,21 +47,31 @@ public class ConfigSelectionList extends ObjectSelectionList<ConfigSelectionList
 	private static final Component MULTIPLAYER_SERVER_TOOLTIP = Component.translatable("configmenusforge.gui.select.multiplayer_server").withStyle(ChatFormatting.GOLD);
 
 	private final SelectConfigScreen screen;
+	private final ConfigSelectionList.Entry loadingHeader;
+	private final CompletableFuture<List<LevelSummary>> pendingLevels;
+	private List<LevelSummary> levelList;
+	private String filter;
 
-	public ConfigSelectionList(SelectConfigScreen selectConfigScreen, Minecraft minecraft, int width, int height, int y0, int y1, int itemHeight, String query) {
+	public ConfigSelectionList(SelectConfigScreen selectConfigScreen, Minecraft minecraft, int width, int height, int y0, int y1, int itemHeight, String filter, @Nullable ConfigSelectionList list) {
 		super(minecraft, width, height, y0, y1, itemHeight);
 		this.screen = selectConfigScreen;
-		this.refreshList(query);
+		this.filter = filter;
+		this.loadingHeader = new ConfigSelectionList.LoadingHeader(this.minecraft);
+		if (list != null) {
+			this.pendingLevels = list.pendingLevels;
+		} else {
+			this.pendingLevels = this.loadLevels();
+		}
+
+		this.handleNewLevels(this.pollLevelsIgnoreErrors());
 	}
 
-	public void refreshList(String query) {
-		this.clearEntries();
-		this.setSelected(null);
-		final String lowerCaseQuery = query.toLowerCase(Locale.ROOT).trim();
-		this.screen.getConfigs().stream()
-				.filter(config -> matchesConfigSearch(config, lowerCaseQuery))
-				.sorted(Comparator.<ModConfig, String>comparing(config -> config.getType().extension()).thenComparing(ConfigListEntry::getName))
-				.forEach(config -> this.addEntry(new ConfigListEntry(this.screen, this.minecraft, config)));
+	public void updateFilter(String filter) {
+		if (this.levelList != null && !filter.equals(this.filter)) {
+			this.fillLevels(filter);
+		}
+
+		this.filter = filter;
 	}
 
 	private static boolean matchesConfigSearch(ModConfig config, String query) {
@@ -59,6 +80,85 @@ public class ConfigSelectionList extends ObjectSelectionList<ConfigSelectionList
 		} else {
 			return config.getType().extension().contains(query);
 		}
+	}
+
+	private CompletableFuture<List<LevelSummary>> loadLevels() {
+		LevelStorageSource.LevelCandidates levelCandidates;
+		try {
+			levelCandidates = this.minecraft.getLevelSource().findLevelCandidates();
+		} catch (LevelStorageException var3) {
+			ForgeConfigScreens.LOGGER.error("Couldn't load level list", var3);
+			return CompletableFuture.completedFuture(List.of());
+		}
+		if (levelCandidates.isEmpty()) {
+			CreateWorldScreen.openFresh(this.minecraft, null);
+			return CompletableFuture.completedFuture(List.of());
+		} else {
+			return this.minecraft.getLevelSource().loadLevelSummaries(levelCandidates).exceptionally((throwable) -> {
+				this.minecraft.delayCrash(CrashReport.forThrowable(throwable, "Couldn't load level list"));
+				return List.of();
+			});
+		}
+	}
+
+	@Nullable
+	private List<LevelSummary> pollLevelsIgnoreErrors() {
+		try {
+			return this.pendingLevels.getNow(null);
+		} catch (CancellationException | CompletionException e) {
+			return null;
+		}
+	}
+
+	private void handleNewLevels(@Nullable List<LevelSummary> list) {
+		if (list == null) {
+			this.fillLoadingLevels();
+		} else {
+			this.fillLevels(this.filter);
+		}
+
+		this.levelList = list;
+	}
+
+	private void fillLoadingLevels() {
+		this.clearEntries();
+		this.addEntry(this.loadingHeader);
+		this.notifyListUpdated();
+	}
+
+	private void fillLevels(String filter) {
+
+		this.clearEntries();
+		filter = filter.toLowerCase(Locale.ROOT).trim();
+		List<ModConfig> toSort = new ArrayList<>();
+		for (ModConfig config : this.screen.getConfigs()) {
+			if (matchesConfigSearch(config, filter)) {
+				toSort.add(config);
+			}
+		}
+		toSort.sort(Comparator.<ModConfig, String>comparing(config -> config.getType().extension()).thenComparing(ConfigListEntry::getName));
+		for (ModConfig config : toSort) {
+			this.addEntry(new ConfigListEntry(this.screen, this.minecraft, config));
+		}
+
+		this.notifyListUpdated();
+	}
+
+	private void notifyListUpdated() {
+		this.screen.triggerImmediateNarration(true);
+	}
+
+	private void updateLevelList() {
+		List<LevelSummary> list = this.pollLevelsIgnoreErrors();
+		if (list != this.levelList) {
+			this.handleNewLevels(list);
+		}
+	}
+
+	@Override
+	public void render(PoseStack poseStack, int mouseX, int mouseY, float tickDelta) {
+		this.updateLevelList();
+		super.render(poseStack, mouseX, mouseY, tickDelta);
 	}
 
 	@Override
@@ -77,12 +177,44 @@ public class ConfigSelectionList extends ObjectSelectionList<ConfigSelectionList
 	}
 
 	@Override
-	public void setSelected(@Nullable ConfigListEntry configListEntry) {
+	public void setSelected(@Nullable Entry configListEntry) {
 		super.setSelected(configListEntry);
-		this.screen.updateButtonStatus(configListEntry != null && !configListEntry.isDisabled());
+		this.screen.updateButtonStatus(configListEntry != null && configListEntry.isSelectable());
 	}
 
-	public class ConfigListEntry extends Entry<ConfigListEntry> {
+	public abstract static class Entry extends ObjectSelectionList.Entry<Entry> {
+
+		public abstract boolean isSelectable();
+	}
+
+	public static class LoadingHeader extends Entry {
+		private static final Component LOADING_LABEL = Component.translatable("selectWorld.loading_list");
+		private final Minecraft minecraft;
+
+		public LoadingHeader(Minecraft minecraft) {
+			this.minecraft = minecraft;
+		}
+
+		public void render(PoseStack pPoseStack, int pIndex, int pTop, int pLeft, int pWidth, int pHeight, int pMouseX, int pMouseY, boolean pIsMouseOver, float pPartialTick) {
+			int i = (this.minecraft.screen.width - this.minecraft.font.width(LOADING_LABEL)) / 2;
+			int j = pTop + (pHeight - 9) / 2;
+			this.minecraft.font.draw(pPoseStack, LOADING_LABEL, (float)i, (float)j, 16777215);
+			String s = LoadingDotsText.get(Util.getMillis());
+			int k = (this.minecraft.screen.width - this.minecraft.font.width(s)) / 2;
+			int l = j + 9;
+			this.minecraft.font.draw(pPoseStack, s, (float)k, (float)l, 8421504);
+		}
+
+		public Component getNarration() {
+			return LOADING_LABEL;
+		}
+
+		public boolean isSelectable() {
+			return false;
+		}
+	}
+
+	public class ConfigListEntry extends Entry {
 		private final SelectConfigScreen screen;
 		private final Minecraft minecraft;
 		private final ModConfig config;
@@ -192,7 +324,7 @@ public class ConfigSelectionList extends ObjectSelectionList<ConfigSelectionList
 		}
 
 		private void selectWorld() {
-			Screen screen = new SelectConfigWorldScreen(this.screen, this.screen.getDisplayName(), this.config, this.screen.getLevelList());
+			Screen screen = new SelectConfigWorldScreen(this.screen, this.screen.getDisplayName(), this.config, ConfigSelectionList.this.levelList);
 			this.minecraft.setScreen(screen);
 		}
 
@@ -208,9 +340,9 @@ public class ConfigSelectionList extends ObjectSelectionList<ConfigSelectionList
 		}
 
 		public boolean needsWorldInstance() {
-			// just display as invalid if there are no worlds to select server configs from anyways
+			// just display as invalid if there are no worlds to select server configs from
 			// check if world is loaded as Forge doesn't clean up server config after leaving world
-			return !this.screen.getLevelList().isEmpty() && this.config.getType() == ModConfig.Type.SERVER && this.minecraft.getConnection() == null;
+			return !ConfigSelectionList.this.levelList.isEmpty() && this.config.getType() == ModConfig.Type.SERVER && this.minecraft.getConnection() == null;
 		}
 
 		private boolean noPermissions() {
@@ -231,6 +363,11 @@ public class ConfigSelectionList extends ObjectSelectionList<ConfigSelectionList
 
 		public boolean mayResetValue() {
 			return this.mayResetValue;
+		}
+
+		@Override
+		public boolean isSelectable() {
+			return !this.isDisabled();
 		}
 	}
 }
