@@ -1,15 +1,15 @@
 package fuzs.forgeconfigscreens;
 
+import fuzs.forgeconfigapiport.api.config.v2.ForgeConfigRegistry;
 import fuzs.forgeconfigscreens.config.TestConfig;
-import fuzs.forgeconfigscreens.lib.core.ModLoaderEnvironment;
 import fuzs.forgeconfigscreens.lib.network.MessageDirection;
 import fuzs.forgeconfigscreens.lib.network.NetworkHandler;
 import fuzs.forgeconfigscreens.network.client.message.C2SAskPermissionsMessage;
 import fuzs.forgeconfigscreens.network.client.message.C2SSendConfigMessage;
 import fuzs.forgeconfigscreens.network.message.S2CGrantPermissionsMessage;
 import fuzs.forgeconfigscreens.network.message.S2CUpdateConfigMessage;
-import fuzs.forgeconfigapiport.api.config.v2.ForgeConfigRegistry;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraftforge.fml.config.ModConfig;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -38,7 +38,7 @@ public class ForgeConfigScreensFabric implements ModInitializer {
     }
 
     private void initTestConfigs() {
-        if (ModLoaderEnvironment.isDevelopmentEnvironment()) {
+        if (FabricLoader.getInstance().isDevelopmentEnvironment()) {
             ForgeConfigRegistry.INSTANCE.register(MOD_ID, ModConfig.Type.CLIENT, TestConfig.CLIENT_SPEC, String.format("%s%s%s-%s.toml", MOD_ID, File.separator, MOD_ID, ModConfig.Type.CLIENT.extension()));
             ForgeConfigRegistry.INSTANCE.register(MOD_ID, ModConfig.Type.COMMON, TestConfig.COMMON_SPEC, String.format("%s-%s.toml", MOD_ID, ModConfig.Type.COMMON.extension()));
             ForgeConfigRegistry.INSTANCE.register(MOD_ID, ModConfig.Type.SERVER, TestConfig.SERVER_SPEC, String.format("%s-%s.toml", MOD_ID, ModConfig.Type.SERVER.extension()));

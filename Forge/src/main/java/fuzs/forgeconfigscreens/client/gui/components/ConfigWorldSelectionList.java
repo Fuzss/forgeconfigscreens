@@ -10,7 +10,7 @@ import fuzs.forgeconfigscreens.ForgeConfigScreens;
 import fuzs.forgeconfigscreens.client.gui.data.IEntryData;
 import fuzs.forgeconfigscreens.client.gui.screens.ConfigScreen;
 import fuzs.forgeconfigscreens.client.gui.screens.SelectConfigWorldScreen;
-import fuzs.forgeconfigscreens.client.util.ModConfigSync;
+import fuzs.forgeconfigscreens.client.util.ModConfigAccessor;
 import net.minecraft.ChatFormatting;
 import net.minecraft.SharedConstants;
 import net.minecraft.Util;
@@ -229,7 +229,7 @@ public class ConfigWorldSelectionList extends ObjectSelectionList<ConfigWorldSel
          FileUtils.getOrCreateDirectory(configBasePath, SERVER_CONFIG_NAME);
          final CommentedFileConfig configData = config.getHandler().reader(configBasePath).apply(config);
          // setting mod server config data without a loaded level shouldn't be a problem, Forge itself doesn't even clean up when a level is unloaded
-         ModConfigSync.setConfigData(config, configData);
+         ModConfigAccessor.setConfigData(config, configData);
          // don't fire config loading event here as Forge does, mods might expect a loaded world to be present
          config.save();
       }

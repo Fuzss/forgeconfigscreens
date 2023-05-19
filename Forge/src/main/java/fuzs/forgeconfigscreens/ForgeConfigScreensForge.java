@@ -1,7 +1,6 @@
 package fuzs.forgeconfigscreens;
 
 import fuzs.forgeconfigscreens.config.TestConfig;
-import fuzs.forgeconfigscreens.lib.core.ModLoaderEnvironment;
 import fuzs.forgeconfigscreens.lib.network.NetworkHandler;
 import fuzs.forgeconfigscreens.network.client.message.C2SAskPermissionsMessage;
 import fuzs.forgeconfigscreens.network.client.message.C2SSendConfigMessage;
@@ -13,6 +12,7 @@ import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLConstructModEvent;
+import net.minecraftforge.fml.loading.FMLLoader;
 import net.minecraftforge.network.NetworkConstants;
 import net.minecraftforge.network.NetworkDirection;
 
@@ -38,7 +38,7 @@ public class ForgeConfigScreensForge {
     }
 
     private static void addTestConfigs() {
-        if (ModLoaderEnvironment.isDevelopmentEnvironment()) {
+        if (!FMLLoader.isProduction()) {
             ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, TestConfig.CLIENT_SPEC, String.format("%s%s%s-%s.toml", ForgeConfigScreens.MOD_ID, File.separator, ForgeConfigScreens.MOD_ID, ModConfig.Type.CLIENT.extension()));
             ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, TestConfig.COMMON_SPEC, String.format("%s-%s.toml", ForgeConfigScreens.MOD_ID, ModConfig.Type.COMMON.extension()));
             ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, TestConfig.SERVER_SPEC, String.format("%s-%s.toml", ForgeConfigScreens.MOD_ID, ModConfig.Type.SERVER.extension()));

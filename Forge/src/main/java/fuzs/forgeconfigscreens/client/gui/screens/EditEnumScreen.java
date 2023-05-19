@@ -1,7 +1,7 @@
 package fuzs.forgeconfigscreens.client.gui.screens;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import fuzs.forgeconfigscreens.client.gui.util.ScreenUtil;
+import fuzs.forgeconfigscreens.client.gui.util.ScreenTextHelper;
 import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.ObjectSelectionList;
@@ -104,7 +104,7 @@ public class EditEnumScreen extends Screen {
 
 			public Entry(Enum<?> value) {
 				this.value = value;
-				this.name = ScreenUtil.toFormattedComponent(value.name().toLowerCase(Locale.ROOT));
+				this.name = ScreenTextHelper.toFormattedComponent(value.name().toLowerCase(Locale.ROOT));
 			}
 
 			@Override

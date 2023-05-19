@@ -13,7 +13,7 @@ public class ServerConfigUploader {
 
     public static void saveAndUpload(ModConfig config) {
         ((ForgeConfigSpec) config.getSpec()).save();
-        ModConfigSync.fireReloadingEvent(config);
+        ModConfigAccessor.fireReloadingEvent(config);
         if (config.getType() == ModConfig.Type.SERVER) {
             final Minecraft minecraft = Minecraft.getInstance();
             if (minecraft.getConnection() != null && !minecraft.isLocalServer()) {

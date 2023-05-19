@@ -4,7 +4,7 @@ package fuzs.forgeconfigscreens.client.gui.data;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.google.common.collect.Iterators;
 import fuzs.forgeconfigscreens.client.gui.screens.ConfigScreen;
-import fuzs.forgeconfigscreens.client.gui.util.ScreenUtil;
+import fuzs.forgeconfigscreens.client.gui.util.ScreenTextHelper;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
 import net.minecraftforge.common.ForgeConfigSpec;
@@ -74,7 +74,7 @@ public class EntryData implements IEntryData {
         private ConfigScreen screen;
 
         public CategoryEntryData(String path, UnmodifiableConfig config, String comment) {
-            super(path, comment, ScreenUtil.toFormattedComponent(path));
+            super(path, comment, ScreenTextHelper.toFormattedComponent(path));
             this.config = config;
         }
 
@@ -179,7 +179,7 @@ public class EntryData implements IEntryData {
             if (valueSpec.getTranslationKey() != null && I18n.exists(valueSpec.getTranslationKey())) {
                 return Component.translatable(valueSpec.getTranslationKey());
             }
-            return ScreenUtil.toFormattedComponent(path);
+            return ScreenTextHelper.toFormattedComponent(path);
         }
     }
 }

@@ -4,7 +4,7 @@ import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.toml.TomlFormat;
 import fuzs.forgeconfigscreens.ForgeConfigScreens;
 import fuzs.forgeconfigscreens.ForgeConfigScreensForge;
-import fuzs.forgeconfigscreens.client.util.ModConfigSync;
+import fuzs.forgeconfigscreens.client.util.ModConfigAccessor;
 import fuzs.forgeconfigscreens.lib.network.message.Message;
 import fuzs.forgeconfigscreens.network.message.S2CUpdateConfigMessage;
 import net.minecraft.network.FriendlyByteBuf;
@@ -61,7 +61,7 @@ public class C2SSendConfigMessage implements Message {
                     // save and reset caches
                     config.save();
                     config.getSpec().afterReload();
-                    ModConfigSync.fireReloadingEvent(config);
+                    ModConfigAccessor.fireReloadingEvent(config);
                     ForgeConfigScreensForge.NETWORK.sendToAllExcept(new S2CUpdateConfigMessage(packet.fileName, packet.fileData), (ServerPlayer) player);
                     ForgeConfigScreens.LOGGER.info("Server config has been updated by {}", player.getDisplayName().getString());
                 } else {

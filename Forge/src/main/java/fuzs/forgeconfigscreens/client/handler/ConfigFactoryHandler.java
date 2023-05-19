@@ -1,6 +1,5 @@
 package fuzs.forgeconfigscreens.client.handler;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.OptionsScreen;
 import net.minecraftforge.client.ConfigScreenHandler;
 import net.minecraftforge.fml.ModList;

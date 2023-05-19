@@ -5,8 +5,6 @@ import com.electronwill.nightconfig.toml.TomlFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import fuzs.forgeconfigscreens.ForgeConfigScreens;
 import fuzs.forgeconfigscreens.client.gui.components.ConfigWorldSelectionList;
-import fuzs.forgeconfigscreens.client.gui.util.ScreenUtil;
-import fuzs.forgeconfigscreens.client.gui.widget.AnimatedIconButton;
 import fuzs.forgeconfigscreens.lib.core.ModLoaderEnvironment;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.components.Button;
@@ -40,8 +38,7 @@ public class SelectConfigWorldScreen extends Screen {
    private Button createButton;
    private Button copyButton;
    private Button fileButton;
-   private AnimatedIconButton tinyJumperButton;
-   
+
    public SelectConfigWorldScreen(Screen lastScreen, Component displayName, ModConfig config, List<LevelSummary> levelList) {
       super(Component.translatable("configmenusforge.gui.select.world.title", displayName));
       this.lastScreen = lastScreen;
@@ -54,8 +51,6 @@ public class SelectConfigWorldScreen extends Screen {
    @Override
    public void tick() {
       this.searchBox.tick();
-      // makes tiny person wave when hovered
-      this.tinyJumperButton.tick();
    }
 
    @Override
@@ -122,7 +117,6 @@ public class SelectConfigWorldScreen extends Screen {
       this.updateButtonStatus(false);
       this.list = new ConfigWorldSelectionList(this, this.minecraft, this.width, this.height, 50, this.height - 60, 36, this.searchBox.getValue(), this.levelList);
       this.addWidget(this.list);
-      this.tinyJumperButton = this.addRenderableWidget(ScreenUtil.makeModPageButton(this, this.width / 2 + 126, 22, this.font, this::handleComponentClicked));
       this.setInitialFocus(this.searchBox);
    }
 

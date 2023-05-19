@@ -1,7 +1,7 @@
 package fuzs.forgeconfigscreens.client.handler;
 
 import fuzs.forgeconfigscreens.client.gui.screens.SelectConfigScreen;
-import fuzs.forgeconfigscreens.client.gui.util.ScreenUtil;
+import fuzs.forgeconfigscreens.client.gui.util.ScreenTextHelper;
 import fuzs.forgeconfigscreens.lib.core.ModLoaderEnvironment;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 public class ConfigScreenFactory {
 
     public static Optional<Function<Screen, Screen>> createConfigScreen(final String modId) {
-        return createConfigScreen(modId, ModLoaderEnvironment.getModContainer(modId).map(ModContainer::getModInfo).map(IModInfo::getDisplayName).orElse(ScreenUtil.toFormattedString(modId)));
+        return createConfigScreen(modId, ModLoaderEnvironment.getModContainer(modId).map(ModContainer::getModInfo).map(IModInfo::getDisplayName).orElse(ScreenTextHelper.toFormattedString(modId)));
     }
 
     public static Optional<Function<Screen, Screen>> createConfigScreen(final String modId, String displayName) {

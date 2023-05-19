@@ -7,7 +7,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import fuzs.forgeconfigscreens.ForgeConfigScreens;
 import fuzs.forgeconfigscreens.client.gui.data.EntryData;
 import fuzs.forgeconfigscreens.client.gui.data.IEntryData;
-import fuzs.forgeconfigscreens.client.gui.util.ScreenUtil;
+import fuzs.forgeconfigscreens.client.gui.util.ScreenTextHelper;
 import fuzs.forgeconfigscreens.client.gui.widget.ConfigEditBox;
 import fuzs.forgeconfigscreens.client.gui.widget.MutableIconButton;
 import fuzs.forgeconfigscreens.client.util.ServerConfigUploader;
@@ -717,7 +717,7 @@ public abstract class ConfigScreen extends Screen {
         public ConfigEntry(EntryData.ConfigEntryData<T> data, String searchHighlight) {
             super(data, searchHighlight);
             this.configEntryData = data;
-            FormattedText truncatedTitle = ScreenUtil.getTruncatedText(ConfigScreen.this.font, this.getTitle(), 260 - 70, Style.EMPTY);
+            FormattedText truncatedTitle = ScreenTextHelper.truncateText(ConfigScreen.this.font, this.getTitle(), 260 - 70, Style.EMPTY);
             this.visualTitle = Language.getInstance().getVisualOrder(truncatedTitle);
             final List<FormattedCharSequence> tooltip = ConfigScreen.this.font.split(RESET_TOOLTIP, 200);
             this.resetButton = new MutableIconButton(0, 0, 20, 20, 140, 0, ICONS_LOCATION, button -> {
@@ -766,7 +766,7 @@ public abstract class ConfigScreen extends Screen {
             lines.addAll(font.getSplitter().splitLines(Component.translatable("configmenusforge.gui.tooltip.default", this.valueToString(configData.getDefaultValue())).withStyle(ChatFormatting.GRAY), 200, Style.EMPTY));
             if (searchHighlight != null && !searchHighlight.isEmpty()) { // path is only added when searching as there would be no way to tell otherwise where the entry is located
                 final Component pathComponent = configData.getFullPath().stream()
-                        .map(ScreenUtil::toFormattedComponent)
+                        .map(ScreenTextHelper::toFormattedComponent)
                         .reduce((o1, o2) -> Component.literal("").append(o1).append(" > ").append(o2))
                         .orElse(Component.empty());
                 lines.addAll(font.getSplitter().splitLines(Component.translatable("configmenusforge.gui.tooltip.path", pathComponent).withStyle(ChatFormatting.GRAY), 200, Style.EMPTY));
@@ -949,7 +949,7 @@ public abstract class ConfigScreen extends Screen {
 
         @Override
         String valueToString(Enum<?> value) {
-            return ScreenUtil.toFormattedString(value.name().toLowerCase(Locale.ROOT));
+            return ScreenTextHelper.toFormattedString(value.name().toLowerCase(Locale.ROOT));
         }
 
         @Override

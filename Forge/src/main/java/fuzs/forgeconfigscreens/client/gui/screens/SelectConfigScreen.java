@@ -8,8 +8,6 @@ import fuzs.forgeconfigscreens.ForgeConfigScreens;
 import fuzs.forgeconfigscreens.ForgeConfigScreensForge;
 import fuzs.forgeconfigscreens.client.gui.components.ConfigSelectionList;
 import fuzs.forgeconfigscreens.client.gui.data.IEntryData;
-import fuzs.forgeconfigscreens.client.gui.util.ScreenUtil;
-import fuzs.forgeconfigscreens.client.gui.widget.AnimatedIconButton;
 import fuzs.forgeconfigscreens.client.util.ServerConfigUploader;
 import fuzs.forgeconfigscreens.lib.core.ModLoaderEnvironment;
 import fuzs.forgeconfigscreens.network.client.message.C2SAskPermissionsMessage;
@@ -49,7 +47,6 @@ public class SelectConfigScreen extends Screen {
 	private Button restoreButton;
 	private Button copyButton;
 	private Button fileButton;
-	private AnimatedIconButton tinyJumperButton;
 	private boolean serverPermissions;
 
 	public SelectConfigScreen(Screen lastScreen, Component displayName, Set<ModConfig> configs) {
@@ -67,8 +64,6 @@ public class SelectConfigScreen extends Screen {
 	@Override
 	public void tick() {
 		this.searchBox.tick();
-		// makes tiny person wave when hovered
-		this.tinyJumperButton.tick();
 	}
 
 	@Override
@@ -152,7 +147,6 @@ public class SelectConfigScreen extends Screen {
 		this.updateButtonStatus(false);
 		this.list = new ConfigSelectionList(this, this.minecraft, this.width, this.height, 50, this.height - 60, 36, this.searchBox.getValue(), this.list);
 		this.addWidget(this.list);
-		this.tinyJumperButton = this.addRenderableWidget(ScreenUtil.makeModPageButton(this, this.width / 2 + 126, 22, this.font, this::handleComponentClicked));
 		this.setInitialFocus(this.searchBox);
 	}
 
