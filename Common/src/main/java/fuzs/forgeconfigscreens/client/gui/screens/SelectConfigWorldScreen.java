@@ -2,11 +2,11 @@ package fuzs.forgeconfigscreens.client.gui.screens;
 
 import com.electronwill.nightconfig.core.io.WritingMode;
 import com.electronwill.nightconfig.toml.TomlFormat;
-import com.mojang.blaze3d.vertex.PoseStack;
 import fuzs.forgeconfigscreens.ForgeConfigScreens;
 import fuzs.forgeconfigscreens.client.gui.components.ConfigWorldSelectionList;
 import fuzs.forgeconfigscreens.core.CommonAbstractions;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.ConfirmScreen;
@@ -139,14 +139,14 @@ public class SelectConfigWorldScreen extends Screen {
    }
 
    @Override
-   public void render(PoseStack pMatrixStack, int pMouseX, int pMouseY, float pPartialTicks) {
+   public void render(GuiGraphics guiGraphics, int pMouseX, int pMouseY, float pPartialTicks) {
       this.activeTooltip = null;
-      this.list.render(pMatrixStack, pMouseX, pMouseY, pPartialTicks);
-      this.searchBox.render(pMatrixStack, pMouseX, pMouseY, pPartialTicks);
-      drawCenteredString(pMatrixStack, this.font, this.title, this.width / 2, 8, 16777215);
-      super.render(pMatrixStack, pMouseX, pMouseY, pPartialTicks);
+      this.list.render(guiGraphics, pMouseX, pMouseY, pPartialTicks);
+      this.searchBox.render(guiGraphics, pMouseX, pMouseY, pPartialTicks);
+      guiGraphics.drawCenteredString(this.font, this.title, this.width / 2, 8, 16777215);
+      super.render(guiGraphics, pMouseX, pMouseY, pPartialTicks);
       if (this.activeTooltip != null) {
-         this.renderTooltip(pMatrixStack, this.activeTooltip, pMouseX, pMouseY);
+         guiGraphics.renderTooltip(this.font, this.activeTooltip, pMouseX, pMouseY);
       }
 
    }

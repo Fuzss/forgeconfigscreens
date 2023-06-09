@@ -83,7 +83,7 @@ public final class FabricAbstractions implements CommonAbstractions {
         ResourceLocation channelName = this.registerChannelName(clazz);
         ServerPlayNetworking.registerGlobalReceiver(channelName, (MinecraftServer server, ServerPlayer player, ServerGamePacketListenerImpl handler, FriendlyByteBuf buf, PacketSender responseSender) -> {
             server.execute(() -> {
-                listener.get().handle(this.readMessage(clazz, buf), server, handler, player, player.getLevel());
+                listener.get().handle(this.readMessage(clazz, buf), server, handler, player, player.serverLevel());
             });
         });
     }

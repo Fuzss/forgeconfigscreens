@@ -2,9 +2,9 @@ package fuzs.forgeconfigscreens.client.gui.screens;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
-import com.mojang.blaze3d.vertex.PoseStack;
 import fuzs.forgeconfigscreens.client.gui.widget.ConfigEditBox;
 import fuzs.forgeconfigscreens.client.gui.widget.MutableIconButton;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.ContainerObjectSelectionList;
 import net.minecraft.client.gui.components.events.GuiEventListener;
@@ -70,18 +70,18 @@ public class EditListScreen extends Screen {
     }
 
     @Override
-    public void render(PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
+    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
         List<? extends FormattedCharSequence> lastTooltip = this.activeTooltip;
         this.activeTooltip = null;
-        this.renderBackground(poseStack);
-        this.list.render(poseStack, mouseX, mouseY, partialTicks);
-        drawCenteredString(poseStack, this.font, this.title, this.width / 2, 14, 0xFFFFFF);
-        super.render(poseStack, mouseX, mouseY, partialTicks);
+        this.renderBackground(guiGraphics);
+        this.list.render(guiGraphics, mouseX, mouseY, partialTicks);
+        guiGraphics.drawCenteredString(this.font, this.title, this.width / 2, 14, 0xFFFFFF);
+        super.render(guiGraphics, mouseX, mouseY, partialTicks);
         if (this.activeTooltip != lastTooltip) {
             this.tooltipTicks = 0;
         }
         if (this.activeTooltip != null && this.tooltipTicks >= 10) {
-            this.renderTooltip(poseStack, this.activeTooltip, mouseX, mouseY);
+            guiGraphics.renderTooltip(this.font, this.activeTooltip, mouseX, mouseY);
         }
     }
 
@@ -160,18 +160,18 @@ public class EditListScreen extends Screen {
             }) {
 
                 @Override
-                public void renderWidget(PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
-                    super.renderWidget(poseStack, mouseX, mouseY, partialTicks);
+                public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+                    super.renderWidget(guiGraphics, mouseX, mouseY, partialTicks);
                     if (this.active) EditListScreen.this.activeTooltip = tooltip;
                 }
             };
         }
 
         @Override
-        public void render(PoseStack poseStack, int index, int entryTop, int entryLeft, int rowWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float partialTicks) {
+        public void render(GuiGraphics guiGraphics, int index, int entryTop, int entryLeft, int rowWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float partialTicks) {
             this.addButton.setX(entryLeft + rowWidth - 21);
             this.addButton.setY(entryTop);
-            this.addButton.render(poseStack, mouseX, mouseY, partialTicks);
+            this.addButton.render(guiGraphics, mouseX, mouseY, partialTicks);
         }
 
         @Override
@@ -234,21 +234,21 @@ public class EditListScreen extends Screen {
             }) {
 
                 @Override
-                public void renderWidget(PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
-                    super.renderWidget(poseStack, mouseX, mouseY, partialTicks);
+                public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+                    super.renderWidget(guiGraphics, mouseX, mouseY, partialTicks);
                     if (this.active) EditListScreen.this.activeTooltip = tooltip;
                 }
             };
         }
 
         @Override
-        public void render(PoseStack poseStack, int index, int entryTop, int entryLeft, int rowWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float partialTicks) {
+        public void render(GuiGraphics guiGraphics, int index, int entryTop, int entryLeft, int rowWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float partialTicks) {
             this.textField.setX(entryLeft);
             this.textField.setY(entryTop + 1);
-            this.textField.render(poseStack, mouseX, mouseY, partialTicks);
+            this.textField.render(guiGraphics, mouseX, mouseY, partialTicks);
             this.deleteButton.setX(entryLeft + rowWidth - 21);
             this.deleteButton.setY(entryTop);
-            this.deleteButton.render(poseStack, mouseX, mouseY, partialTicks);
+            this.deleteButton.render(guiGraphics, mouseX, mouseY, partialTicks);
         }
 
         @Override

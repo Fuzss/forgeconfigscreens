@@ -3,7 +3,6 @@ package fuzs.forgeconfigscreens.client.gui.screens;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.mojang.blaze3d.vertex.PoseStack;
 import fuzs.forgeconfigscreens.ForgeConfigScreens;
 import fuzs.forgeconfigscreens.client.gui.data.EntryData;
 import fuzs.forgeconfigscreens.client.gui.data.IEntryData;
@@ -13,6 +12,7 @@ import fuzs.forgeconfigscreens.client.gui.widget.MutableIconButton;
 import fuzs.forgeconfigscreens.client.helper.ServerConfigUploader;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.ContainerObjectSelectionList;
@@ -215,13 +215,13 @@ public abstract class ConfigScreen extends Screen {
                 }, Supplier::get) {
 
                     @Override
-                    public void renderWidget(PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
+                    public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
                         // yellow when hovered
                         int color = otherScreen && this.isHoveredOrFocused() ? 16777045 : 16777215;
-                        drawCenteredString(poseStack, Sub.this.font, this.getMessage(), this.getX() + this.width / 2, this.getY() + (this.height - 8) / 2, color);
+                        guiGraphics.drawCenteredString(Sub.this.font, this.getMessage(), this.getX() + this.width / 2, this.getY() + (this.height - 8) / 2, color);
                         if (this.isHoveredOrFocused() && otherScreen && this.active) {
                             // move down as this is right at screen top
-                            Sub.this.renderTooltip(poseStack, CommonComponents.GUI_BACK, mouseX, mouseY + 24);
+                            guiGraphics.renderTooltip(Sub.this.font, CommonComponents.GUI_BACK, mouseX, mouseY + 24);
                         }
                     }
 
@@ -235,8 +235,8 @@ public abstract class ConfigScreen extends Screen {
                     }, Supplier::get) {
 
                         @Override
-                        public void renderWidget(PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
-                            drawCenteredString(poseStack, Sub.this.font, this.getMessage(), this.getX() + this.width / 2, this.getY() + (this.height - 8) / 2, 16777215);
+                        public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+                            guiGraphics.drawCenteredString(Sub.this.font, this.getMessage(), this.getX() + this.width / 2, this.getY() + (this.height - 8) / 2, 16777215);
                         }
 
                         @Override
@@ -269,7 +269,7 @@ public abstract class ConfigScreen extends Screen {
         }
 
         @Override
-        void drawBaseTitle(PoseStack poseStack) {
+        void drawBaseTitle(GuiGraphics guiGraphics) {
         }
 
         @Override
@@ -319,10 +319,10 @@ public abstract class ConfigScreen extends Screen {
         }) {
 
             @Override
-            public void renderWidget(PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
-                super.renderWidget(poseStack, mouseX, mouseY, partialTicks);
+            public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+                super.renderWidget(guiGraphics, mouseX, mouseY, partialTicks);
                 if (this.active && this.isHoveredOrFocused()) {
-                    ConfigScreen.this.renderTooltip(poseStack, ConfigScreen.this.buttonData[0] == 1 ? SORTING_ZA_TOOLTIP : SORTING_AZ_TOOLTIP, mouseX, mouseY);
+                    guiGraphics.renderTooltip(ConfigScreen.this.font, ConfigScreen.this.buttonData[0] == 1 ? SORTING_ZA_TOOLTIP : SORTING_AZ_TOOLTIP, mouseX, mouseY);
                 }
             }
         });
@@ -333,10 +333,10 @@ public abstract class ConfigScreen extends Screen {
         }) {
 
             @Override
-            public void renderWidget(PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
-                super.renderWidget(poseStack, mouseX, mouseY, partialTicks);
+            public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+                super.renderWidget(guiGraphics, mouseX, mouseY, partialTicks);
                 if (this.active && this.isHoveredOrFocused()) {
-                    ConfigScreen.this.renderTooltip(poseStack, EntryFilter.values()[ConfigScreen.this.buttonData[1]].getMessage(), mouseX, mouseY);
+                    guiGraphics.renderTooltip(ConfigScreen.this.font, EntryFilter.values()[ConfigScreen.this.buttonData[1]].getMessage(), mouseX, mouseY);
                 }
             }
         });
@@ -347,10 +347,10 @@ public abstract class ConfigScreen extends Screen {
         }) {
 
             @Override
-            public void renderWidget(PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
-                super.renderWidget(poseStack, mouseX, mouseY, partialTicks);
+            public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+                super.renderWidget(guiGraphics, mouseX, mouseY, partialTicks);
                 if (this.active && this.isHoveredOrFocused()) {
-                    ConfigScreen.this.renderTooltip(poseStack, EntryFilter.values()[ConfigScreen.this.buttonData[2]].getMessage(), mouseX, mouseY);
+                    guiGraphics.renderTooltip(ConfigScreen.this.font, EntryFilter.values()[ConfigScreen.this.buttonData[2]].getMessage(), mouseX, mouseY);
                 }
             }
         });
@@ -402,24 +402,24 @@ public abstract class ConfigScreen extends Screen {
     }
 
     @Override
-    public void render(PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
+    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
         List<? extends FormattedCharSequence> lastTooltip = this.activeTooltip;
         this.activeTooltip = null;
-        this.renderBackground(poseStack);
-        this.list.render(poseStack, mouseX, mouseY, partialTicks);
-        this.searchTextField.render(poseStack, mouseX, mouseY, partialTicks);
-        this.drawBaseTitle(poseStack);
-        super.render(poseStack, mouseX, mouseY, partialTicks);
+        this.renderBackground(guiGraphics);
+        this.list.render(guiGraphics, mouseX, mouseY, partialTicks);
+        this.searchTextField.render(guiGraphics, mouseX, mouseY, partialTicks);
+        this.drawBaseTitle(guiGraphics);
+        super.render(guiGraphics, mouseX, mouseY, partialTicks);
         if (this.activeTooltip != lastTooltip) {
             this.tooltipTicks = 0;
         }
         if (this.activeTooltip != null && this.tooltipTicks >= 10) {
-            this.renderTooltip(poseStack, this.activeTooltip, mouseX, mouseY);
+            guiGraphics.renderTooltip(this.font, this.activeTooltip, mouseX, mouseY);
         }
     }
 
-    void drawBaseTitle(PoseStack poseStack) {
-        drawCenteredString(poseStack, this.font, this.getTitle(), this.width / 2, 7, 16777215);
+    void drawBaseTitle(GuiGraphics guiGraphics) {
+        guiGraphics.drawCenteredString(this.font, this.getTitle(), this.width / 2, 7, 16777215);
     }
 
     @Override
@@ -591,8 +591,8 @@ public abstract class ConfigScreen extends Screen {
         }
 
         @Override
-        public void render(PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
-            super.render(poseStack, mouseX, mouseY, partialTicks);
+        public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+            super.render(guiGraphics, mouseX, mouseY, partialTicks);
             if (this.isMouseOver(mouseX, mouseY) && mouseX < ConfigScreen.this.list.getRowLeft() + ConfigScreen.this.list.getRowWidth() - 67) {
                 ConfigScreen.Entry entry = this.getHovered();
                 if (entry != null) {
@@ -628,7 +628,7 @@ public abstract class ConfigScreen extends Screen {
         abstract boolean isHovered(int mouseX, int mouseY);
 
         @Override
-        public void render(PoseStack poseStack, int index, int entryTop, int entryLeft, int rowWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float partialTicks) {
+        public void render(GuiGraphics guiGraphics, int index, int entryTop, int entryLeft, int rowWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float partialTicks) {
             if (this.isHovered(mouseX, mouseY)) {
                 ConfigScreen.this.setActiveTooltip(this.tooltip);
             }
@@ -683,12 +683,12 @@ public abstract class ConfigScreen extends Screen {
         }
 
         @Override
-        public void render(PoseStack poseStack, int index, int entryTop, int entryLeft, int rowWidth, int entryHeight, int mouseX, int mouseY, boolean selected, float partialTicks) {
+        public void render(GuiGraphics guiGraphics, int index, int entryTop, int entryLeft, int rowWidth, int entryHeight, int mouseX, int mouseY, boolean selected, float partialTicks) {
             this.button.setX(entryLeft - 1);
             this.button.setY(entryTop);
-            this.button.render(poseStack, mouseX, mouseY, partialTicks);
+            this.button.render(guiGraphics, mouseX, mouseY, partialTicks);
             // only sets tooltip and hovered flag for button is updated on rendering
-            super.render(poseStack, index, entryTop, entryLeft, rowWidth, entryHeight, mouseX, mouseY, selected, partialTicks);
+            super.render(guiGraphics, index, entryTop, entryLeft, rowWidth, entryHeight, mouseX, mouseY, selected, partialTicks);
         }
 
         @Override
@@ -728,8 +728,8 @@ public abstract class ConfigScreen extends Screen {
             }) {
 
                 @Override
-                public void renderWidget(PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
-                    super.renderWidget(poseStack, mouseX, mouseY, partialTicks);
+                public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+                    super.renderWidget(guiGraphics, mouseX, mouseY, partialTicks);
                     if (this.active && this.isHoveredOrFocused()) ConfigScreen.this.setActiveTooltip(tooltip);
                 }
             };
@@ -795,7 +795,7 @@ public abstract class ConfigScreen extends Screen {
         }
 
         @Override
-        public void render(PoseStack poseStack, int index, int entryTop, int entryLeft, int rowWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float partialTicks) {
+        public void render(GuiGraphics guiGraphics, int index, int entryTop, int entryLeft, int rowWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float partialTicks) {
             // value button start: end - 67
             // value button width: 44
             // gap: 2
@@ -803,11 +803,11 @@ public abstract class ConfigScreen extends Screen {
             // reset button width: 20
             // yellow when hovered
             int color = this.isHovered(mouseX, mouseY) ? 16777045 : 16777215;
-            ConfigScreen.this.font.drawShadow(poseStack, this.visualTitle, entryLeft, entryTop + 6, color);
+            guiGraphics.drawString(ConfigScreen.this.font, this.visualTitle, entryLeft, entryTop + 6, color);
             this.resetButton.setX(entryLeft + rowWidth - 21);
             this.resetButton.setY(entryTop);
-            this.resetButton.render(poseStack, mouseX, mouseY, partialTicks);
-            super.render(poseStack, index, entryTop, entryLeft, rowWidth, entryHeight, mouseX, mouseY, hovered, partialTicks);
+            this.resetButton.render(guiGraphics, mouseX, mouseY, partialTicks);
+            super.render(guiGraphics, index, entryTop, entryLeft, rowWidth, entryHeight, mouseX, mouseY, hovered, partialTicks);
         }
 
         @Override
@@ -865,11 +865,11 @@ public abstract class ConfigScreen extends Screen {
         }
 
         @Override
-        public void render(PoseStack matrixStack, int index, int entryTop, int entryLeft, int rowWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float partialTicks) {
-            super.render(matrixStack, index, entryTop, entryLeft, rowWidth, entryHeight, mouseX, mouseY, hovered, partialTicks);
+        public void render(GuiGraphics guiGraphics, int index, int entryTop, int entryLeft, int rowWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float partialTicks) {
+            super.render(guiGraphics, index, entryTop, entryLeft, rowWidth, entryHeight, mouseX, mouseY, hovered, partialTicks);
             this.textField.setX(entryLeft + rowWidth - 66);
             this.textField.setY(entryTop + 1);
-            this.textField.render(matrixStack, mouseX, mouseY, partialTicks);
+            this.textField.render(guiGraphics, mouseX, mouseY, partialTicks);
         }
 
         @Override
@@ -895,11 +895,11 @@ public abstract class ConfigScreen extends Screen {
         }
 
         @Override
-        public void render(PoseStack matrixStack, int index, int entryTop, int entryLeft, int rowWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float partialTicks) {
-            super.render(matrixStack, index, entryTop, entryLeft, rowWidth, entryHeight, mouseX, mouseY, hovered, partialTicks);
+        public void render(GuiGraphics guiGraphics, int index, int entryTop, int entryLeft, int rowWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float partialTicks) {
+            super.render(guiGraphics, index, entryTop, entryLeft, rowWidth, entryHeight, mouseX, mouseY, hovered, partialTicks);
             this.button.setX(entryLeft + rowWidth - 67);
             this.button.setY(entryTop);
-            this.button.render(matrixStack, mouseX, mouseY, partialTicks);
+            this.button.render(guiGraphics, mouseX, mouseY, partialTicks);
         }
 
         @Override
@@ -939,11 +939,11 @@ public abstract class ConfigScreen extends Screen {
         abstract Screen makeEditScreen(String type, T currentValue, ForgeConfigSpec.ValueSpec valueSpec, Consumer<T> onSave);
 
         @Override
-        public void render(PoseStack matrixStack, int index, int entryTop, int entryLeft, int rowWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float partialTicks) {
-            super.render(matrixStack, index, entryTop, entryLeft, rowWidth, entryHeight, mouseX, mouseY, hovered, partialTicks);
+        public void render(GuiGraphics guiGraphics, int index, int entryTop, int entryLeft, int rowWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float partialTicks) {
+            super.render(guiGraphics, index, entryTop, entryLeft, rowWidth, entryHeight, mouseX, mouseY, hovered, partialTicks);
             this.button.setX(entryLeft + rowWidth - 67);
             this.button.setY(entryTop);
-            this.button.render(matrixStack, mouseX, mouseY, partialTicks);
+            this.button.render(guiGraphics, mouseX, mouseY, partialTicks);
         }
     }
 

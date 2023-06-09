@@ -1,8 +1,7 @@
 package fuzs.forgeconfigscreens.client.gui.screens;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import fuzs.forgeconfigscreens.client.gui.helper.ScreenTextHelper;
-import net.minecraft.client.gui.GuiComponent;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.ObjectSelectionList;
 import net.minecraft.client.gui.screens.Screen;
@@ -57,11 +56,11 @@ public class EditEnumScreen extends Screen {
 	}
 
 	@Override
-	public void render(PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
-		this.renderBackground(poseStack);
-		this.list.render(poseStack, mouseX, mouseY, partialTicks);
-		drawCenteredString(poseStack, this.font, this.title, this.width / 2, 14, 16777215);
-		super.render(poseStack, mouseX, mouseY, partialTicks);
+	public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+		this.renderBackground(guiGraphics);
+		this.list.render(guiGraphics, mouseX, mouseY, partialTicks);
+		guiGraphics.drawCenteredString(this.font, this.title, this.width / 2, 14, 16777215);
+		super.render(guiGraphics, mouseX, mouseY, partialTicks);
 	}
 
 	private class EnumList extends ObjectSelectionList<EnumList.Entry> {
@@ -113,8 +112,8 @@ public class EditEnumScreen extends Screen {
 			}
 
 			@Override
-			public void render(PoseStack poseStack, int index, int entryTop, int entryLeft, int rowWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float partialTicks) {
-				GuiComponent.drawCenteredString(poseStack, EditEnumScreen.this.font, this.name, entryLeft + rowWidth / 2, entryTop + 2, 16777215);
+			public void render(GuiGraphics guiGraphics, int index, int entryTop, int entryLeft, int rowWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float partialTicks) {
+				guiGraphics.drawCenteredString(EditEnumScreen.this.font, this.name, entryLeft + rowWidth / 2, entryTop + 2, 16777215);
 			}
 
 			@Override

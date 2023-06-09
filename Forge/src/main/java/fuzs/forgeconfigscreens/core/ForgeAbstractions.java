@@ -89,7 +89,7 @@ public final class ForgeAbstractions implements CommonAbstractions {
     public <T extends WritableMessage> void registerServerboundMessage(Class<T> clazz, Supplier<NetworkingHelper.ServerMessageListener<T>> listener) {
         this.registerMessage(clazz, (T message, ServerPlayer player) -> {
             Objects.requireNonNull(player, "player is null");
-            listener.get().handle(message, ServerLifecycleHooks.getCurrentServer(), player.connection, player, player.getLevel());
+            listener.get().handle(message, ServerLifecycleHooks.getCurrentServer(), player.connection, player, player.serverLevel());
         }, NetworkDirection.PLAY_TO_SERVER);
     }
 

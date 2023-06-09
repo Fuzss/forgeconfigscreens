@@ -1,7 +1,7 @@
 package fuzs.forgeconfigscreens.client.gui.widget;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.network.chat.Component;
 
@@ -47,14 +47,14 @@ public class ConfigEditBox extends EditBox {
     }
 
     @Override
-    public void renderWidget(PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
-        super.renderWidget(poseStack, mouseX, mouseY, partialTicks);
+    public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+        super.renderWidget(guiGraphics, mouseX, mouseY, partialTicks);
         if (this.invalid && this.visible && this.bordered) {
             final int color = 16711680 | 255 << 24;
-            fill(poseStack, this.getX() - 1, this.getY() - 1, this.getX() + this.width + 1, this.getY(), color);
-            fill(poseStack, this.getX() - 1, this.getY() - 1, this.getX(), this.getY() + this.height + 1, color);
-            fill(poseStack, this.getX() + this.width, this.getY() - 1, this.getX() + this.width + 1, this.getY() + this.height + 1, color);
-            fill(poseStack, this.getX() - 1, this.getY() + this.height, this.getX() + this.width + 1, this.getY() + this.height + 1, color);
+            guiGraphics.fill(this.getX() - 1, this.getY() - 1, this.getX() + this.width + 1, this.getY(), color);
+            guiGraphics.fill(this.getX() - 1, this.getY() - 1, this.getX(), this.getY() + this.height + 1, color);
+            guiGraphics.fill(this.getX() + this.width, this.getY() - 1, this.getX() + this.width + 1, this.getY() + this.height + 1, color);
+            guiGraphics.fill(this.getX() - 1, this.getY() + this.height, this.getX() + this.width + 1, this.getY() + this.height + 1, color);
         }
     }
 
