@@ -295,7 +295,7 @@ curseforge {
         mainArtifact(jar) {
             displayName = "[FORGE] [${minecraftVersion}] ${rootProject.name}-v${modVersion}"
             relations {
-                requiredDependency 'puzzles-lib'
+//                requiredDependency 'puzzles-lib'
             }
         }
 //        addArtifact sourcesJar
@@ -322,7 +322,7 @@ modrinth {
     loaders.add 'forge'
 //    additionalFiles.add file("${project.buildDir}/libs/${project.archivesBaseName}-${project.version}-sources.jar")
     dependencies {
-        required.project 'puzzles-lib'
+//        required.project 'puzzles-lib'
     }
 //	debugMode = true
 }
