@@ -97,7 +97,7 @@ dependencies {
     }
 
     // Minecraft
-    minecraft "net.minecraftforge:forge:${libs.versions.forge.get()}"
+    minecraft "net.minecraftforge:forge:${libs.versions.forge.version.get()}"
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 
     // Quality of Life Mods
@@ -140,10 +140,10 @@ processResources {
     inputs.property "modIssueUrl", modIssueUrl
     inputs.property "modAuthor", modAuthor
     inputs.property "modLicense", modLicense
-    inputs.property "minFMLVersion", libs.versions.minForge.get().replaceAll("\\..*", "")
-    inputs.property "minForgeVersion", libs.versions.minForge.get()
+    inputs.property "minFMLVersion", libs.versions.forge.min.get().replaceAll("\\..*", "")
+    inputs.property "minForgeVersion", libs.versions.forge.min.get()
     inputs.property "minecraftVersion", libs.versions.minecraft.get()
-    inputs.property "minPuzzlesVersion", libs.versions.minPuzzles.get()
+    inputs.property "minPuzzlesVersion", libs.versions.puzzleslib.min.get()
     inputs.property "resourcePackFormat", libs.versions.resources.get()
     inputs.property "dataPackFormat", libs.versions.data.get()
     inputs.property "modForgeDisplayTest", modForgeDisplayTest
@@ -161,10 +161,10 @@ processResources {
                 'modIssueUrl': modIssueUrl,
                 'modAuthor': modAuthor,
                 'modLicense': modLicense,
-                'minFMLVersion': libs.versions.minForge.get().replaceAll("\\..*", ""),
-                'minForgeVersion': libs.versions.minForge.get(),
+                'minFMLVersion': libs.versions.forge.min.get().replaceAll("\\..*", ""),
+                'minForgeVersion': libs.versions.forge.min.get(),
                 'minecraftVersion': libs.versions.minecraft.get(),
-                'minPuzzlesVersion': libs.versions.minPuzzles.get(),
+                'minPuzzlesVersion': libs.versions.puzzleslib.min.get(),
                 'modForgeDisplayTest': modForgeDisplayTest
         )
     }

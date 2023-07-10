@@ -32,12 +32,12 @@ dependencies {
     minecraft "com.mojang:minecraft:${libs.versions.minecraft.get()}"
     mappings loom.layered() {
         officialMojangMappings()
-        parchment("org.parchmentmc.data:parchment-${libs.versions.parchmentMinecraft.get()}:${libs.versions.parchment.get()}@zip")
+        parchment("org.parchmentmc.data:parchment-${libs.versions.parchment.minecraft.get()}:${libs.versions.parchment.version.get()}@zip")
     }
 
     // Fabric
-    modApi "net.fabricmc:fabric-loader:${libs.versions.fabric.get()}"
-    modApi "net.fabricmc.fabric-api:fabric-api:${libs.versions.fabricApi.get()}"
+    modApi "net.fabricmc:fabric-loader:${libs.versions.fabricloader.version.get()}"
+    modApi "net.fabricmc.fabric-api:fabric-api:${libs.versions.fabricapi.version.get()}"
 
     // Forge Config API Port
     modApi "fuzs.forgeconfigapiport:forgeconfigapiport-fabric:${libs.versions.forgeconfigapiport.get()}"
@@ -51,7 +51,7 @@ dependencies {
 //    modLocalRuntime "curse.maven:configured-fabric-667378:4441611"
 
     // Puzzles Lib
-    modApi ("fuzs.puzzleslib:puzzleslib-fabric:${libs.versions.puzzles.get()}")
+//    modApi ("fuzs.puzzleslib:puzzleslib-fabric:${libs.versions.puzzleslib.version.get()}")
 }
 
 loom {
@@ -98,10 +98,10 @@ processResources {
     inputs.property "modIssueUrl", modIssueUrl
     inputs.property "modAuthor", modAuthor
     inputs.property "modLicense", modLicense
-    inputs.property "minFabricVersion", libs.versions.minFabric.get()
-    inputs.property "minFabricApiVersion", libs.versions.minFabricApi.get()
+    inputs.property "minFabricVersion", libs.versions.fabricloader.min.get()
+    inputs.property "minFabricApiVersion", libs.versions.fabricapi.min.get()
     inputs.property "minecraftVersion", libs.versions.minecraft.get()
-    inputs.property "minPuzzlesVersion", libs.versions.minPuzzles.get()
+    inputs.property "minPuzzlesVersion", libs.versions.puzzleslib.min.get()
     inputs.property "resourcePackFormat", libs.versions.resources.get()
     inputs.property "dataPackFormat", libs.versions.data.get()
     inputs.property "mainEntryPoint", "${project.group}.${rootProject.name}Fabric"
@@ -120,10 +120,10 @@ processResources {
                 'modIssueUrl': modIssueUrl,
                 'modAuthor': modAuthor,
                 'modLicense': modLicense,
-                'minFabricVersion': libs.versions.minFabric.get(),
-                'minFabricApiVersion': libs.versions.minFabricApi.get(),
+                'minFabricVersion': libs.versions.fabricloader.min.get(),
+                'minFabricApiVersion': libs.versions.fabricapi.min.get(),
                 'minecraftVersion': libs.versions.minecraft.get(),
-                "minPuzzlesVersion": libs.versions.minPuzzles.get(),
+                "minPuzzlesVersion": libs.versions.puzzleslib.min.get(),
                 "mainEntryPoint": "${project.group}.${rootProject.name}Fabric",
                 "clientEntryPoint": "${project.group}.client.${rootProject.name}FabricClient",
                 "modFabricEnvironment": modFabricEnvironment
