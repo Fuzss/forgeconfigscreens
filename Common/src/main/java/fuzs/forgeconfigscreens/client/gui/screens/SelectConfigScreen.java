@@ -6,6 +6,7 @@ import com.google.common.collect.ImmutableMap;
 import fuzs.forgeconfigscreens.ForgeConfigScreens;
 import fuzs.forgeconfigscreens.client.gui.components.ConfigSelectionList;
 import fuzs.forgeconfigscreens.client.gui.data.IEntryData;
+import fuzs.forgeconfigscreens.client.gui.helper.PanoramaBackgroundHelper;
 import fuzs.forgeconfigscreens.client.helper.ServerConfigUploader;
 import fuzs.forgeconfigscreens.core.CommonAbstractions;
 import fuzs.forgeconfigscreens.core.NetworkingHelper;
@@ -110,7 +111,13 @@ public class SelectConfigScreen extends Screen {
 						ServerConfigUploader.saveAndUpload(config);
 					}
 					this.minecraft.setScreen(this);
-				}, Component.translatable("configmenusforge.gui.message.restore.title"), component2);
+				}, Component.translatable("configmenusforge.gui.message.restore.title"), component2) {
+
+					@Override
+					public void renderDirtBackground(GuiGraphics guiGraphics) {
+						PanoramaBackgroundHelper.renderDirtBackground(guiGraphics, this.width, this.height);
+					}
+				};
 				this.minecraft.setScreen(confirmScreen);
 			}
 		}).bounds(this.width / 2 - 50, this.height - 52, 100, 20).build());
@@ -138,7 +145,13 @@ public class SelectConfigScreen extends Screen {
 						}
 					}
 					this.minecraft.setScreen(this);
-				}, Component.translatable("configmenusforge.gui.message.copy.title"), component2));
+				}, Component.translatable("configmenusforge.gui.message.copy.title"), component2) {
+
+					@Override
+					public void renderDirtBackground(GuiGraphics guiGraphics) {
+						PanoramaBackgroundHelper.renderDirtBackground(guiGraphics, this.width, this.height);
+					}
+				});
 			}
 		}).bounds(this.width / 2 - 50 + 104, this.height - 52, 100, 20).build());
 		this.fileButton = this.addRenderableWidget(Button.builder(Component.translatable("configmenusforge.gui.select.open"), button -> {
@@ -172,6 +185,7 @@ public class SelectConfigScreen extends Screen {
 	@Override
 	public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
 		this.activeTooltip = null;
+		this.renderBackground(guiGraphics);
 		this.list.render(guiGraphics, mouseX, mouseY, partialTicks);
 		this.searchBox.render(guiGraphics, mouseX, mouseY, partialTicks);
 		guiGraphics.drawCenteredString(this.font, this.title, this.width / 2, 7, 16777215);
@@ -179,6 +193,11 @@ public class SelectConfigScreen extends Screen {
 		if (this.activeTooltip != null) {
 			guiGraphics.renderTooltip(this.font, this.activeTooltip, mouseX, mouseY);
 		}
+	}
+
+	@Override
+	public void renderDirtBackground(GuiGraphics guiGraphics) {
+		PanoramaBackgroundHelper.renderDirtBackground(guiGraphics, this.width, this.height);
 	}
 
 	public void updateButtonStatus(boolean active) {

@@ -4,11 +4,15 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.ImageButton;
+import net.minecraft.client.renderer.texture.Tickable;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 
-public class MutableIconButton extends ImageButton {
+public class MutableIconButton extends ImageButton implements Tickable {
     protected int xTexStart;
     protected int yTexStart;
+    private int hoverTime;
+    private int lastHoverTime;
 
     public MutableIconButton(int x, int y, int width, int height, int xTexStart, int yTexStart, ResourceLocation resourceLocation, Button.OnPress onPress) {
         super(x, y, width, height, xTexStart, yTexStart, resourceLocation, onPress);
@@ -38,7 +42,21 @@ public class MutableIconButton extends ImageButton {
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, this.alpha);
         RenderSystem.enableBlend();
         RenderSystem.enableDepthTest();
-        guiGraphics.blitNineSliced(WIDGETS_LOCATION, this.getX(), this.getY(), this.getWidth(), this.getHeight(), 20, 4, 200, 20, 0, this.getTextureY());
+        float hoverTimeProgress = Mth.lerp(partialTicks, this.lastHoverTime, this.hoverTime) / 5.0F;
+//        float leftProgress = Math.min(1.0F, hoverTimeProgress * 2.0F);
+//        float rightProgress = Mth.clamp(hoverTimeProgress * 2.0F - 1.0F, 0.0F, 1.0F);
+//        guiGraphics.fill(this.getX(), this.getY(), this.getX() + this.getWidth(), this.getY() + this.getHeight(), 127 << 24 & 0xFF000000);
+//        guiGraphics.fill(this.getX(), this.getY(), (int) (this.getX() + this.getWidth() * leftProgress), this.getY() + 1, 0xFF94E4D3);
+//        guiGraphics.fill(this.getX(), this.getY(), this.getX() + 1, (int) (this.getY() + this.getHeight() * leftProgress), 0xFF94E4D3);
+//        guiGraphics.fill(this.getX(), this.getY() + this.getHeight() - 1, (int) (this.getX() + this.getWidth() * rightProgress), this.getY() + this.getHeight(), 0xFF94E4D3);
+//        guiGraphics.fill(this.getX() + this.getWidth() - 1, this.getY(), this.getX() + this.getWidth(), (int) (this.getY() + this.getHeight() * rightProgress), 0xFF94E4D3);
+        float leftProgress = Math.min(1.0F, hoverTimeProgress * 2.0F);
+        float rightProgress = Mth.clamp(hoverTimeProgress * 2.0F - 1.0F, 0.0F, 1.0F);
+        guiGraphics.fill(this.getX(), this.getY(), this.getX() + this.getWidth(), this.getY() + this.getHeight(), 127 << 24 & 0xFF000000);
+        guiGraphics.fill(this.getX(), this.getY(), (int) (this.getX() + this.getWidth() * hoverTimeProgress), this.getY() + 1, 0xFF94E4D3);
+        guiGraphics.fill(this.getX(), this.getY(), this.getX() + 1, (int) (this.getY() + this.getHeight() * hoverTimeProgress), 0xFF94E4D3);
+        guiGraphics.fill((int) (this.getX() + this.getWidth() * (1.0F - hoverTimeProgress)), this.getY() + this.getHeight() - 1, (int) (this.getX() + this.getWidth()), this.getY() + this.getHeight(), 0xFF94E4D3);
+        guiGraphics.fill(this.getX() + this.getWidth() - 1, (int) (this.getY() + this.getHeight() * (1.0F - hoverTimeProgress)), this.getX() + this.getWidth(), (int) (this.getY() + this.getHeight()), 0xFF94E4D3);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         this.renderTexture(guiGraphics, this.resourceLocation, this.getX(), this.getY(), this.xTexStart, this.yTexStart, this.yDiffTex, this.width, this.height, this.textureWidth, this.textureHeight);
     }
@@ -56,13 +74,13 @@ public class MutableIconButton extends ImageButton {
         guiGraphics.blit(resourceLocation, i, j, k, r, n, o, p, q);
     }
 
-    private int getTextureY() {
-        int i = 1;
-        if (!this.active) {
-            i = 0;
-        } else if (this.isHoveredOrFocused()) {
-            i = 2;
+    @Override
+    public void tick() {
+        this.lastHoverTime = this.hoverTime;
+        if (this.isHovered) {
+            if (this.hoverTime < 5) this.hoverTime++;
+        } else {
+            if (this.hoverTime > 0) this.hoverTime--;
         }
-        return 46 + i * 20;
     }
 }

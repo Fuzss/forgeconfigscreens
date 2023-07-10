@@ -3,6 +3,7 @@ package fuzs.forgeconfigscreens.client.gui.components;
 import com.mojang.blaze3d.systems.RenderSystem;
 import fuzs.forgeconfigscreens.ForgeConfigScreens;
 import fuzs.forgeconfigscreens.client.gui.data.IEntryData;
+import fuzs.forgeconfigscreens.client.gui.helper.ScreenTextHelper;
 import fuzs.forgeconfigscreens.client.gui.screens.ConfigScreen;
 import fuzs.forgeconfigscreens.client.gui.screens.SelectConfigScreen;
 import fuzs.forgeconfigscreens.client.gui.screens.SelectConfigWorldScreen;
@@ -15,9 +16,12 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.ObjectSelectionList;
 import net.minecraft.client.gui.screens.LoadingDotsText;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.locale.Language;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.level.storage.LevelStorageException;
 import net.minecraft.world.level.storage.LevelStorageSource;
 import net.minecraft.world.level.storage.LevelSummary;
@@ -61,6 +65,9 @@ public class ConfigSelectionList extends ObjectSelectionList<ConfigSelectionList
         }
 
         this.handleNewLevels(this.pollLevelsIgnoreErrors());
+        this.setRenderBackground(false);
+        this.setRenderTopAndBottom(false);
+        this.setRenderSelection(false);
     }
 
     private static boolean matchesConfigSearch(ModConfig config, String query) {
@@ -221,7 +228,7 @@ public class ConfigSelectionList extends ObjectSelectionList<ConfigSelectionList
         private final ModConfig config;
         private final boolean mayResetValue;
         private final Component nameComponent;
-        private final Component fileNameComponent;
+        private final FormattedCharSequence fileNameComponent;
         private final Component typeComponent;
         private long lastClickTime;
 
@@ -231,7 +238,8 @@ public class ConfigSelectionList extends ObjectSelectionList<ConfigSelectionList
             this.config = config;
             this.mayResetValue = selectConfigScreen.getValueToDataMap(config).values().stream().anyMatch(IEntryData::mayResetValue);
             this.nameComponent = this.mayResetValue ? Component.literal(getName(config)).withStyle(ChatFormatting.ITALIC) : Component.literal(getName(config));
-            this.fileNameComponent = Component.literal(config.getFileName());
+//            this.fileNameComponent = Component.literal(config.getFileName());
+            this.fileNameComponent = Language.getInstance().getVisualOrder(ScreenTextHelper.truncateText(minecraft.font, Component.literal(config.getFileName()), 220));
             String extension = config.getType().extension();
             this.typeComponent = Component.translatable("configmenusforge.gui.type.title", StringUtils.capitalize(extension));
         }

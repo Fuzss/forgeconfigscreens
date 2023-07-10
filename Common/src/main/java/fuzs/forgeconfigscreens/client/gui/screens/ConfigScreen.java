@@ -3,9 +3,11 @@ package fuzs.forgeconfigscreens.client.gui.screens;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.mojang.blaze3d.platform.InputConstants;
 import fuzs.forgeconfigscreens.ForgeConfigScreens;
 import fuzs.forgeconfigscreens.client.gui.data.EntryData;
 import fuzs.forgeconfigscreens.client.gui.data.IEntryData;
+import fuzs.forgeconfigscreens.client.gui.helper.PanoramaBackgroundHelper;
 import fuzs.forgeconfigscreens.client.gui.helper.ScreenTextHelper;
 import fuzs.forgeconfigscreens.client.gui.widget.ConfigEditBox;
 import fuzs.forgeconfigscreens.client.gui.widget.MutableIconButton;
@@ -23,6 +25,7 @@ import net.minecraft.client.gui.narration.NarratedElementType;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.ConfirmScreen;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.renderer.texture.Tickable;
 import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.locale.Language;
 import net.minecraft.network.chat.CommonComponents;
@@ -41,13 +44,13 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @SuppressWarnings("ConstantConditions")
 public abstract class ConfigScreen extends Screen {
     public static final ResourceLocation ICONS_LOCATION = ForgeConfigScreens.id("textures/gui/icons.png");
     public static final Component SORTING_AZ_TOOLTIP = Component.translatable("configmenusforge.gui.tooltip.sorting", Component.translatable("configmenusforge.gui.tooltip.sorting.az"));
     public static final Component SORTING_ZA_TOOLTIP = Component.translatable("configmenusforge.gui.tooltip.sorting", Component.translatable("configmenusforge.gui.tooltip.sorting.za"));
+    public static final Component SAVE_COMPONENT = Component.translatable("configmenusforge.gui.save");
 
     final Screen lastScreen;
     /**
@@ -68,6 +71,10 @@ public abstract class ConfigScreen extends Screen {
     final Map<Object, IEntryData> valueToData;
     private ConfigList list;
     EditBox searchTextField;
+    private Button doneButton;
+    private final Runnable onSave;
+    private Button cancelButton;
+    private Button backButton;
     private Button reverseButton;
     private Button filterButton;
     private Button searchFilterButton;
@@ -79,11 +86,12 @@ public abstract class ConfigScreen extends Screen {
     private List<? extends FormattedCharSequence> activeTooltip;
     private int tooltipTicks;
 
-    private ConfigScreen(Screen lastScreen, Component title, UnmodifiableConfig config, Map<Object, IEntryData> valueToData, int[] buttonData) {
+    private ConfigScreen(Screen lastScreen, Component title, UnmodifiableConfig config, Map<Object, IEntryData> valueToData, int[] buttonData, Runnable onSave) {
         super(title);
         this.lastScreen = lastScreen;
         this.valueToData = valueToData;
         this.buttonData = buttonData;
+        this.onSave = onSave;
         this.searchEntries = this.gatherEntriesRecursive(config, valueToData);
         this.screenEntries = config.valueMap().values().stream().map(valueToData::get).toList();
         this.buildSubScreens(this.screenEntries);
@@ -118,47 +126,35 @@ public abstract class ConfigScreen extends Screen {
         return new ConfigScreen.Main(lastScreen, title, ((ForgeConfigSpec) config.getSpec()).getValues(), valueToData, () -> ServerConfigUploader.saveAndUpload(config));
     }
 
+    abstract Component getCancelComponent();
+
+    abstract Screen getSaveExitScreen();
+
+    void updateDoneButtonState() {
+        if (this.doneButton != null) {
+            this.doneButton.active = this.valueToData.values().stream().anyMatch(Predicate.not(IEntryData::mayDiscardChanges));
+        }
+    }
+
+    @Override
+    public void renderDirtBackground(GuiGraphics guiGraphics) {
+        PanoramaBackgroundHelper.renderDirtBackground(guiGraphics, this.width, this.height);
+    }
+
     private static class Main extends ConfigScreen {
-        /**
-         * called when closing screen via done button
-         */
-        private final Runnable onSave;
-        private Button doneButton;
-        private Button cancelButton;
-        private Button backButton;
 
         private Main(Screen lastScreen, Component title, UnmodifiableConfig config, Map<Object, IEntryData> valueToData, Runnable onSave) {
-            super(lastScreen, title, config, valueToData, new int[3]);
-            this.onSave = onSave;
+            super(lastScreen, title, config, valueToData, new int[3], onSave);
         }
 
         @Override
-        protected void init() {
-            super.init();
-            this.doneButton = this.addRenderableWidget(Button.builder(CommonComponents.GUI_DONE, button -> {
-                // avoid unnecessary config reloading
-                if (this.valueToData.values().stream().anyMatch(Predicate.not(IEntryData::mayDiscardChanges))) {
-                    this.valueToData.values().forEach(IEntryData::saveConfigValue);
-                    this.onSave.run();
-                }
-                this.minecraft.setScreen(this.lastScreen);
-            }).bounds(this.width / 2 - 154, this.height - 28, 150, 20).build());
-            this.cancelButton = this.addRenderableWidget(Button.builder(CommonComponents.GUI_CANCEL, button -> {
-                this.onClose();
-            }).bounds(this.width / 2 + 4, this.height - 28, 150, 20).build());
-            // button is made visible when search field is active
-            this.backButton = this.addRenderableWidget(Button.builder(CommonComponents.GUI_BACK, button -> {
-                this.searchTextField.setValue("");
-            }).bounds(this.width / 2 - 100, this.height - 28, 200, 20).build());
-            this.onSearchFieldChanged(this.searchTextField.getValue().trim().isEmpty());
+        Component getCancelComponent() {
+            return CommonComponents.GUI_CANCEL;
         }
 
         @Override
-        void onSearchFieldChanged(boolean empty) {
-            super.onSearchFieldChanged(empty);
-            this.doneButton.visible = empty;
-            this.cancelButton.visible = empty;
-            this.backButton.visible = !empty;
+        Screen getSaveExitScreen() {
+            return this.lastScreen;
         }
 
         @Override
@@ -179,7 +175,14 @@ public abstract class ConfigScreen extends Screen {
                         } else {
                             this.minecraft.setScreen(this);
                         }
-                    }, Component.translatable("configmenusforge.gui.message.discard"), Component.empty());
+                    }, Component.translatable("configmenusforge.gui.message.discard"), Component.empty()) {
+
+
+                        @Override
+                        public void renderDirtBackground(GuiGraphics guiGraphics) {
+                            PanoramaBackgroundHelper.renderDirtBackground(guiGraphics, this.width, this.height);
+                        }
+                    };
                 }
                 this.minecraft.setScreen(confirmScreen);
             }
@@ -189,21 +192,29 @@ public abstract class ConfigScreen extends Screen {
     private static class Sub extends ConfigScreen {
 
         private Sub(ConfigScreen lastScreen, Component title, UnmodifiableConfig config) {
-            super(lastScreen, title, config, lastScreen.valueToData, lastScreen.buttonData);
+            super(lastScreen, title, config, lastScreen.valueToData, lastScreen.buttonData, lastScreen.onSave);
         }
 
         @Override
         protected void init() {
             super.init();
-            this.addRenderableWidget(Button.builder(CommonComponents.GUI_BACK, button -> {
-                this.onClose();
-            }).bounds(this.width / 2 - 100, this.height - 28, 200, 20).build());
             this.makeNavigationButtons().forEach(this::addRenderableWidget);
             this.onSearchFieldChanged(this.searchTextField.getValue().trim().isEmpty());
         }
 
+        @Override
+        Component getCancelComponent() {
+            return CommonComponents.GUI_BACK;
+        }
+
+        @Override
+        Screen getSaveExitScreen() {
+            List<ConfigScreen> lastScreens = this.getLastScreens();
+            return lastScreens.get(lastScreens.size() - 1).lastScreen;
+        }
+
         private List<Button> makeNavigationButtons() {
-            List<Screen> lastScreens = this.getLastScreens();
+            List<ConfigScreen> lastScreens = this.getLastScreens();
             final int maxSize = 5;
             List<Button> buttons = Lists.newLinkedList();
             for (int i = 0, size = Math.min(maxSize, lastScreens.size()); i < size; i++) {
@@ -217,9 +228,9 @@ public abstract class ConfigScreen extends Screen {
                     @Override
                     public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
                         // yellow when hovered
-                        int color = otherScreen && this.isHoveredOrFocused() ? 16777045 : 16777215;
+                        int color = otherScreen && this.isHovered ? 16777045 : 16777215;
                         guiGraphics.drawCenteredString(Sub.this.font, this.getMessage(), this.getX() + this.width / 2, this.getY() + (this.height - 8) / 2, color);
-                        if (this.isHoveredOrFocused() && otherScreen && this.active) {
+                        if (this.isHovered && otherScreen && this.active) {
                             // move down as this is right at screen top
                             guiGraphics.renderTooltip(Sub.this.font, CommonComponents.GUI_BACK, mouseX, mouseY + 24);
                         }
@@ -250,11 +261,11 @@ public abstract class ConfigScreen extends Screen {
             return buttons;
         }
 
-        private List<Screen> getLastScreens() {
+        private List<ConfigScreen> getLastScreens() {
             Screen lastScreen = this;
-            List<Screen> lastScreens = Lists.newLinkedList();
+            List<ConfigScreen> lastScreens = Lists.newLinkedList();
             while (lastScreen instanceof ConfigScreen configScreen) {
-                lastScreens.add(lastScreen);
+                lastScreens.add(configScreen);
                 lastScreen = configScreen.lastScreen;
             }
             return lastScreens;
@@ -270,6 +281,7 @@ public abstract class ConfigScreen extends Screen {
 
         @Override
         void drawBaseTitle(GuiGraphics guiGraphics) {
+
         }
 
         @Override
@@ -293,7 +305,7 @@ public abstract class ConfigScreen extends Screen {
             @Override
             public boolean mouseClicked(double mouseX, double mouseY, int button) {
                 // left click clears text
-                if (this.isVisible() && button == 1) {
+                if (this.isVisible() && button == InputConstants.MOUSE_BUTTON_RIGHT) {
                     this.setValue("");
                 }
                 return super.mouseClicked(mouseX, mouseY, button);
@@ -321,39 +333,56 @@ public abstract class ConfigScreen extends Screen {
             @Override
             public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
                 super.renderWidget(guiGraphics, mouseX, mouseY, partialTicks);
-                if (this.active && this.isHoveredOrFocused()) {
+                if (this.active && this.isHovered) {
                     guiGraphics.renderTooltip(ConfigScreen.this.font, ConfigScreen.this.buttonData[0] == 1 ? SORTING_ZA_TOOLTIP : SORTING_AZ_TOOLTIP, mouseX, mouseY);
                 }
             }
         });
-        this.filterButton = this.addRenderableWidget(new MutableIconButton(this.width / 2 + 126, 22, 20, 20, EntryFilter.values()[this.buttonData[1]].getTextureX(), 0, ICONS_LOCATION, button -> {
-            this.buttonData[1] = EntryFilter.cycle(this.buttonData[1], false, Screen.hasShiftDown());
+        this.filterButton = this.addRenderableWidget(new MutableIconButton(this.width / 2 + 126, 22, 20, 20, ShownEntriesFilter.values()[this.buttonData[1]].getTextureX(), 0, ICONS_LOCATION, button -> {
+            this.buttonData[1] = ShownEntriesFilter.cycle(this.buttonData[1], false, Screen.hasShiftDown());
             this.updateList(true);
-            ((MutableIconButton) button).setTexture(EntryFilter.values()[this.buttonData[1]].getTextureX(), 0);
+            ((MutableIconButton) button).setTexture(ShownEntriesFilter.values()[this.buttonData[1]].getTextureX(), 0);
         }) {
 
             @Override
             public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
                 super.renderWidget(guiGraphics, mouseX, mouseY, partialTicks);
-                if (this.active && this.isHoveredOrFocused()) {
-                    guiGraphics.renderTooltip(ConfigScreen.this.font, EntryFilter.values()[ConfigScreen.this.buttonData[1]].getMessage(), mouseX, mouseY);
+                if (this.active && this.isHovered) {
+                    guiGraphics.renderTooltip(ConfigScreen.this.font, ShownEntriesFilter.values()[ConfigScreen.this.buttonData[1]].getMessage(), mouseX, mouseY);
                 }
             }
         });
-        this.searchFilterButton = this.addRenderableWidget(new MutableIconButton(this.width / 2 + 126 + 24, 22, 20, 20, EntryFilter.values()[this.buttonData[2]].getTextureX(), 0, ICONS_LOCATION, button -> {
-            this.buttonData[2] = EntryFilter.cycle(this.buttonData[2], true, Screen.hasShiftDown());
+        this.searchFilterButton = this.addRenderableWidget(new MutableIconButton(this.width / 2 + 126, 22, 20, 20, ShownEntriesFilter.values()[this.buttonData[2]].getTextureX(), 0, ICONS_LOCATION, button -> {
+            this.buttonData[2] = ShownEntriesFilter.cycle(this.buttonData[2], true, Screen.hasShiftDown());
             this.updateList(true);
-            ((MutableIconButton) button).setTexture(EntryFilter.values()[this.buttonData[2]].getTextureX(), 0);
+            ((MutableIconButton) button).setTexture(ShownEntriesFilter.values()[this.buttonData[2]].getTextureX(), 0);
         }) {
 
             @Override
             public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
                 super.renderWidget(guiGraphics, mouseX, mouseY, partialTicks);
-                if (this.active && this.isHoveredOrFocused()) {
-                    guiGraphics.renderTooltip(ConfigScreen.this.font, EntryFilter.values()[ConfigScreen.this.buttonData[2]].getMessage(), mouseX, mouseY);
+                if (this.active && this.isHovered) {
+                    guiGraphics.renderTooltip(ConfigScreen.this.font, ShownEntriesFilter.values()[ConfigScreen.this.buttonData[2]].getMessage(), mouseX, mouseY);
                 }
             }
         });
+        this.doneButton = this.addRenderableWidget(Button.builder(SAVE_COMPONENT, button -> {
+            // avoid unnecessary config reloading
+            if (this.valueToData.values().stream().anyMatch(Predicate.not(IEntryData::mayDiscardChanges))) {
+                this.valueToData.values().forEach(IEntryData::saveConfigValue);
+                this.onSave.run();
+            }
+            this.minecraft.setScreen(this.getSaveExitScreen());
+        }).bounds(this.width / 2 - 154, this.height - 28, 150, 20).build());
+        this.cancelButton = this.addRenderableWidget(Button.builder(this.getCancelComponent(), button -> {
+            this.onClose();
+        }).bounds(this.width / 2 + 4, this.height - 28, 150, 20).build());
+        // button is made visible when search field is active
+        this.backButton = this.addRenderableWidget(Button.builder(CommonComponents.GUI_BACK, button -> {
+            this.searchTextField.setValue("");
+        }).bounds(this.width / 2 - 100, this.height - 28, 200, 20).build());
+        this.onSearchFieldChanged(this.searchTextField.getValue().trim().isEmpty());
+        this.updateDoneButtonState();
     }
 
     public void updateList(boolean resetScroll) {
@@ -373,7 +402,7 @@ public abstract class ConfigScreen extends Screen {
     List<ConfigScreen.Entry> getConfigListEntries(List<IEntryData> entries, final String searchHighlight) {
         final boolean empty = searchHighlight.isEmpty();
         return entries.stream()
-                .filter(data -> data.mayInclude(searchHighlight) && EntryFilter.values()[empty ? this.buttonData[1] : this.buttonData[2]].test(data, empty))
+                .filter(data -> data.mayInclude(searchHighlight) && ShownEntriesFilter.values()[empty ? this.buttonData[1] : this.buttonData[2]].test(data, empty))
                 .sorted(IEntryData.getSearchComparator(searchHighlight, this.buttonData[0] == 1))
                 .map(entryData -> this.makeEntry(entryData, searchHighlight))
                 // there might be an unsupported value which will return null
@@ -381,11 +410,14 @@ public abstract class ConfigScreen extends Screen {
                 .toList();
     }
 
-    void onSearchFieldChanged(boolean isEmpty) {
+    final void onSearchFieldChanged(boolean empty) {
         // sets button visibilities
-        this.reverseButton.visible = isEmpty;
-        this.filterButton.visible = isEmpty;
-        this.searchFilterButton.visible = !isEmpty;
+        this.reverseButton.visible = empty;
+        this.filterButton.visible = empty;
+        this.searchFilterButton.visible = !empty;
+        this.doneButton.visible = empty;
+        this.cancelButton.visible = empty;
+        this.backButton.visible = !empty;
     }
 
     @Override
@@ -398,6 +430,9 @@ public abstract class ConfigScreen extends Screen {
         // makes tooltips not appear immediately
         if (this.tooltipTicks < 10) {
             this.tooltipTicks++;
+        }
+        for (GuiEventListener eventListener : this.children()) {
+            if (eventListener instanceof Tickable tickable) tickable.tick();
         }
     }
 
@@ -419,7 +454,11 @@ public abstract class ConfigScreen extends Screen {
     }
 
     void drawBaseTitle(GuiGraphics guiGraphics) {
-        guiGraphics.drawCenteredString(this.font, this.getTitle(), this.width / 2, 7, 16777215);
+        int width = this.font.width(this.getTitle());
+        int posX = (this.width - width) / 2;
+        int posY = 7;
+        guiGraphics.fill(posX - 2, posY - 2, posX + width + 2, posY + this.font.lineHeight + 2, 0x7F000000);
+        guiGraphics.drawString(this.font, this.getTitle(), posX, posY, 0xFFFFFF, true);
     }
 
     @Override
@@ -504,72 +543,13 @@ public abstract class ConfigScreen extends Screen {
         return null;
     }
 
-    private enum EntryFilter {
-        ALL(6, "configmenusforge.gui.tooltip.showing.all", data -> true),
-        ENTRIES(2, "configmenusforge.gui.tooltip.showing.entries", Predicate.not(IEntryData::category), true),
-        CATEGORIES(8, "configmenusforge.gui.tooltip.showing.categories", IEntryData::category, true),
-        EDITED(3, "configmenusforge.gui.tooltip.showing.edited", Predicate.not(IEntryData::mayDiscardChanges)),
-        RESETTABLE(7, "configmenusforge.gui.tooltip.showing.resettable", IEntryData::mayResetValue);
-
-        private static final String SHOWING_TRANSLATION_KEY = "configmenusforge.gui.tooltip.showing";
-        private static final int[] DEFAULT_FILTERS_INDICES = Stream.of(EntryFilter.values())
-                .filter(Predicate.not(EntryFilter::searchOnly))
-                .mapToInt(Enum::ordinal)
-                .toArray();
-
-        private final int textureX;
-        private final Component message;
-        private final Predicate<IEntryData> predicate;
-        private final boolean searchOnly;
-
-        EntryFilter(int textureIndex, String translationKey, Predicate<IEntryData> predicate) {
-            this(textureIndex, translationKey, predicate, false);
-        }
-
-        EntryFilter(int textureIndex, String translationKey, Predicate<IEntryData> predicate, boolean searchOnly) {
-            this.textureX = textureIndex * 20;
-            this.message = Component.translatable(SHOWING_TRANSLATION_KEY, Component.translatable(translationKey));
-            this.predicate = predicate;
-            this.searchOnly = searchOnly;
-        }
-
-        public int getTextureX() {
-            return this.textureX;
-        }
-
-        public Component getMessage() {
-            return this.message;
-        }
-
-        public boolean test(IEntryData data, boolean empty) {
-            return this.predicate.test(data) || empty && data.category();
-        }
-
-        private boolean searchOnly() {
-            return this.searchOnly;
-        }
-
-        public static int cycle(int index, boolean search, boolean reversed) {
-            if (!search) {
-                for (int i = 0; i < DEFAULT_FILTERS_INDICES.length; i++) {
-                    if (DEFAULT_FILTERS_INDICES[i] == index) {
-                        index = i;
-                        break;
-                    }
-                }
-            }
-            int length = search ? EntryFilter.values().length : DEFAULT_FILTERS_INDICES.length;
-            int amount = reversed ? -1 : 1;
-            index = (index + amount + length) % length;
-            return search ? index : DEFAULT_FILTERS_INDICES[index];
-        }
-    }
-
     public class ConfigList extends ContainerObjectSelectionList<Entry> {
 
         public ConfigList(List<ConfigScreen.Entry> entries) {
             super(ConfigScreen.this.minecraft, ConfigScreen.this.width, ConfigScreen.this.height, 50, ConfigScreen.this.height - 36, 24);
             entries.forEach(this::addEntry);
+            this.setRenderBackground(false);
+            this.setRenderTopAndBottom(false);
         }
 
         @Override
@@ -679,7 +659,7 @@ public abstract class ConfigScreen extends Screen {
 
         @Override
         boolean isHovered(int mouseX, int mouseY) {
-            return this.button.isHoveredOrFocused();
+            return this.button.isHovered();
         }
 
         @Override
@@ -718,7 +698,7 @@ public abstract class ConfigScreen extends Screen {
         public ConfigEntry(EntryData.ConfigEntryData<T> data, String searchHighlight) {
             super(data, searchHighlight);
             this.configEntryData = data;
-            FormattedText truncatedTitle = ScreenTextHelper.truncateText(ConfigScreen.this.font, this.getTitle(), 260 - 70, Style.EMPTY);
+            FormattedText truncatedTitle = ScreenTextHelper.truncateText(ConfigScreen.this.font, this.getTitle(), 260 - 70);
             this.visualTitle = Language.getInstance().getVisualOrder(truncatedTitle);
             final List<FormattedCharSequence> tooltip = ConfigScreen.this.font.split(RESET_TOOLTIP, 200);
             this.resetButton = new MutableIconButton(0, 0, 20, 20, 140, 0, ICONS_LOCATION, button -> {
@@ -730,7 +710,7 @@ public abstract class ConfigScreen extends Screen {
                 @Override
                 public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
                     super.renderWidget(guiGraphics, mouseX, mouseY, partialTicks);
-                    if (this.active && this.isHoveredOrFocused()) ConfigScreen.this.setActiveTooltip(tooltip);
+                    if (this.active && this.isHovered) ConfigScreen.this.setActiveTooltip(tooltip);
                 }
             };
             this.resetButton.active = data.mayResetValue();
@@ -782,6 +762,7 @@ public abstract class ConfigScreen extends Screen {
 
         public void onConfigValueChanged(T newValue, boolean reset) {
             this.resetButton.active = this.configEntryData.mayResetValue();
+            ConfigScreen.this.updateDoneButtonState();
         }
 
         @Override
@@ -803,6 +784,7 @@ public abstract class ConfigScreen extends Screen {
             // reset button width: 20
             // yellow when hovered
             int color = this.isHovered(mouseX, mouseY) ? 16777045 : 16777215;
+            guiGraphics.fill(entryLeft - 5, entryTop + 6 - 5, entryLeft + ConfigScreen.this.font.width(this.visualTitle) + 5, entryTop + 6 + ConfigScreen.this.font.lineHeight + 5, 127 << 24 & -16777216);
             guiGraphics.drawString(ConfigScreen.this.font, this.visualTitle, entryLeft, entryTop + 6, color);
             this.resetButton.setX(entryLeft + rowWidth - 21);
             this.resetButton.setY(entryTop);
@@ -1054,7 +1036,13 @@ public abstract class ConfigScreen extends Screen {
                     } else {
                         ConfigScreen.this.minecraft.setScreen(ConfigScreen.this);
                     }
-                }, component1, Component.translatable("configmenusforge.gui.message.dangerous.text"), CommonComponents.GUI_PROCEED, CommonComponents.GUI_BACK);
+                }, component1, Component.translatable("configmenusforge.gui.message.dangerous.text"), CommonComponents.GUI_PROCEED, CommonComponents.GUI_BACK) {
+
+                @Override
+                public void renderDirtBackground(GuiGraphics guiGraphics) {
+                    PanoramaBackgroundHelper.renderDirtBackground(guiGraphics, this.width, this.height);
+                }
+            };
         }
     }
 }

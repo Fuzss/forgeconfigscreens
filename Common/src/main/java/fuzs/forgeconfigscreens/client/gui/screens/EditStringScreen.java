@@ -1,5 +1,6 @@
 package fuzs.forgeconfigscreens.client.gui.screens;
 
+import fuzs.forgeconfigscreens.client.gui.helper.PanoramaBackgroundHelper;
 import fuzs.forgeconfigscreens.client.gui.widget.ConfigEditBox;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
@@ -29,6 +30,11 @@ public class EditStringScreen extends Screen {
     @Override
     public void onClose() {
         this.minecraft.setScreen(this.lastScreen);
+    }
+
+    @Override
+    public void tick() {
+        this.textField.tick();
     }
 
     @Override
@@ -65,5 +71,10 @@ public class EditStringScreen extends Screen {
         this.textField.render(guiGraphics, mouseX, mouseY, partialTicks);
         guiGraphics.drawCenteredString(this.font, this.title, this.width / 2, this.height / 2 - 40, 0xFFFFFF);
         super.render(guiGraphics, mouseX, mouseY, partialTicks);
+    }
+
+    @Override
+    public void renderDirtBackground(GuiGraphics guiGraphics) {
+        PanoramaBackgroundHelper.renderDirtBackground(guiGraphics, this.width, this.height);
     }
 }

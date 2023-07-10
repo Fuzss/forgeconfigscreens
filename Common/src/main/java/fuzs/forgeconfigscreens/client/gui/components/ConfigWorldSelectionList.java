@@ -64,6 +64,9 @@ public class ConfigWorldSelectionList extends ObjectSelectionList<ConfigWorldSel
         this.levelList = levelList;
         this.createConfigTooltip = Component.translatable("configmenusforge.gui.select.create_config", selectConfigWorldScreen.getDisplayName()).withStyle(ChatFormatting.GOLD);
         this.refreshList(query);
+        this.setRenderBackground(false);
+        this.setRenderTopAndBottom(false);
+        this.setRenderSelection(false);
     }
 
     public void refreshList(String query) {

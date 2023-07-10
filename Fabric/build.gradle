@@ -51,7 +51,7 @@ dependencies {
 //    modLocalRuntime "curse.maven:configured-fabric-667378:4441611"
 
     // Puzzles Lib
-    modApi ("fuzs.puzzleslib:puzzleslib-fabric:${libs.versions.puzzles.get()}")
+//    modApi ("fuzs.puzzleslib:puzzleslib-fabric:${libs.versions.puzzles.get()}")
 }
 
 loom {

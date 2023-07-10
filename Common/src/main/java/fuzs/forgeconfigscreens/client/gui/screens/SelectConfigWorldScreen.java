@@ -4,6 +4,7 @@ import com.electronwill.nightconfig.core.io.WritingMode;
 import com.electronwill.nightconfig.toml.TomlFormat;
 import fuzs.forgeconfigscreens.ForgeConfigScreens;
 import fuzs.forgeconfigscreens.client.gui.components.ConfigWorldSelectionList;
+import fuzs.forgeconfigscreens.client.gui.helper.PanoramaBackgroundHelper;
 import fuzs.forgeconfigscreens.core.CommonAbstractions;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
@@ -106,7 +107,13 @@ public class SelectConfigWorldScreen extends Screen {
                   }
                }
                this.minecraft.setScreen(this);
-            }, Component.translatable("configmenusforge.gui.message.copy.title"), component2));
+            }, Component.translatable("configmenusforge.gui.message.copy.title"), component2) {
+
+               @Override
+               public void renderDirtBackground(GuiGraphics guiGraphics) {
+                  PanoramaBackgroundHelper.renderDirtBackground(guiGraphics, this.width, this.height);
+               }
+            });
          }
       }).bounds(this.width / 2 + 4, this.height - 52, 150, 20).build());
       this.fileButton = this.addRenderableWidget(Button.builder(Component.translatable("configmenusforge.gui.select.open"), button -> {
@@ -141,6 +148,7 @@ public class SelectConfigWorldScreen extends Screen {
    @Override
    public void render(GuiGraphics guiGraphics, int pMouseX, int pMouseY, float pPartialTicks) {
       this.activeTooltip = null;
+      this.renderBackground(guiGraphics);
       this.list.render(guiGraphics, pMouseX, pMouseY, pPartialTicks);
       this.searchBox.render(guiGraphics, pMouseX, pMouseY, pPartialTicks);
       guiGraphics.drawCenteredString(this.font, this.title, this.width / 2, 8, 16777215);
@@ -148,7 +156,11 @@ public class SelectConfigWorldScreen extends Screen {
       if (this.activeTooltip != null) {
          guiGraphics.renderTooltip(this.font, this.activeTooltip, pMouseX, pMouseY);
       }
+   }
 
+   @Override
+   public void renderDirtBackground(GuiGraphics guiGraphics) {
+      PanoramaBackgroundHelper.renderDirtBackground(guiGraphics, this.width, this.height);
    }
 
    public void setActiveTooltip(List<FormattedCharSequence> list) {

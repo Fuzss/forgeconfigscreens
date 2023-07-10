@@ -38,10 +38,10 @@ public class ScreenTextHelper {
         return Strings.join(words, " ").replaceAll("\\s++", " ");
     }
 
-    public static FormattedText truncateText(Font font, Component component, int maxWidth, Style style) {
+    public static FormattedText truncateText(Font font, Component component, int maxWidth) {
         // trim component when too long
         if (font.width(component) > maxWidth) {
-            return FormattedText.composite(font.getSplitter().headByWidth(component, maxWidth - font.width(CommonComponents.ELLIPSIS), style), CommonComponents.ELLIPSIS);
+            return FormattedText.composite(font.getSplitter().headByWidth(component, maxWidth - font.width(CommonComponents.ELLIPSIS), Style.EMPTY), CommonComponents.ELLIPSIS);
         } else {
             return component;
         }

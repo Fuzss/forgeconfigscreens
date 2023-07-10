@@ -2,6 +2,7 @@ package fuzs.forgeconfigscreens.client.gui.screens;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
+import fuzs.forgeconfigscreens.client.gui.helper.PanoramaBackgroundHelper;
 import fuzs.forgeconfigscreens.client.gui.widget.ConfigEditBox;
 import fuzs.forgeconfigscreens.client.gui.widget.MutableIconButton;
 import net.minecraft.client.gui.GuiGraphics;
@@ -86,6 +87,11 @@ public class EditListScreen extends Screen {
     }
 
     @Override
+    public void renderDirtBackground(GuiGraphics guiGraphics) {
+        PanoramaBackgroundHelper.renderDirtBackground(guiGraphics, this.width, this.height);
+    }
+
+    @Override
     public void tick() {
         // makes the cursor blink
         if (this.activeTextField != null) {
@@ -121,6 +127,8 @@ public class EditListScreen extends Screen {
                 this.addEntry(new EditEntry(this, value));
             });
             this.addEntry(new AddEntry(this, values));
+            this.setRenderBackground(false);
+            this.setRenderTopAndBottom(false);
         }
 
         @Override

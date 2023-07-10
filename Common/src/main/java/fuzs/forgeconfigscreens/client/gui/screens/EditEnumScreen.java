@@ -1,5 +1,6 @@
 package fuzs.forgeconfigscreens.client.gui.screens;
 
+import fuzs.forgeconfigscreens.client.gui.helper.PanoramaBackgroundHelper;
 import fuzs.forgeconfigscreens.client.gui.helper.ScreenTextHelper;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
@@ -63,6 +64,11 @@ public class EditEnumScreen extends Screen {
 		super.render(guiGraphics, mouseX, mouseY, partialTicks);
 	}
 
+	@Override
+	public void renderDirtBackground(GuiGraphics guiGraphics) {
+		PanoramaBackgroundHelper.renderDirtBackground(guiGraphics, this.width, this.height);
+	}
+
 	private class EnumList extends ObjectSelectionList<EnumList.Entry> {
 
 		EnumList() {
@@ -72,6 +78,8 @@ public class EditEnumScreen extends Screen {
 					.sorted(Comparator.comparing(Enum::name))
 					.map(Entry::new)
 					.forEach(this::addEntry);
+			this.setRenderBackground(false);
+			this.setRenderTopAndBottom(false);
 		}
 
 		@Override
