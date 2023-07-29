@@ -5,8 +5,4 @@ import net.minecraft.network.FriendlyByteBuf;
 
 public record C2SAskPermissionsMessage() implements WritableMessage {
 
-    @Override
-    public void write(FriendlyByteBuf buf) {
-
-    }
 }

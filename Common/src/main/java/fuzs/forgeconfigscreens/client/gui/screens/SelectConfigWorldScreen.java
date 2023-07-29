@@ -66,6 +66,7 @@ public class SelectConfigWorldScreen extends Screen {
          }
       };
       this.searchBox.setResponder(query -> this.list.refreshList(query));
+      this.searchBox.setMaxLength(50);
       this.addWidget(this.searchBox);
       this.addRenderableWidget(Button.builder(CommonComponents.GUI_DONE, button -> {
          this.onClose();

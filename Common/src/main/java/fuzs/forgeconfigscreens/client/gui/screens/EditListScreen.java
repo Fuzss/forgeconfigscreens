@@ -223,6 +223,7 @@ public class EditListScreen extends Screen {
                     EditListScreen.this.markInvalid(this);
                 }
             });
+            this.textField.setMaxLength(32500);
             this.textField.setValue(holder.getValue());
             this.textField.setFocused(withFocus);
 

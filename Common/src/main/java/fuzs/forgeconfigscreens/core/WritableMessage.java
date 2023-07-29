@@ -4,5 +4,7 @@ import net.minecraft.network.FriendlyByteBuf;
 
 public interface WritableMessage {
 
-    void write(final FriendlyByteBuf buf);
+    default void write(final FriendlyByteBuf buf) {
+
+    }
 }

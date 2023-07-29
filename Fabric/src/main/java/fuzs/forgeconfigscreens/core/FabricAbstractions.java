@@ -27,13 +27,12 @@ import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraftforge.fml.config.IConfigSpec;
 import net.minecraftforge.fml.config.ModConfig;
 
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.MethodType;
 import java.nio.file.Path;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 public final class FabricAbstractions implements CommonAbstractions {
@@ -69,11 +68,12 @@ public final class FabricAbstractions implements CommonAbstractions {
     public <T extends WritableMessage> void registerClientboundMessage(Class<T> clazz, Supplier<NetworkingHelper.ClientMessageListener<T>> listener) {
         ResourceLocation channelName = this.registerChannelName(clazz);
         if (FabricLoader.getInstance().getEnvironmentType() != EnvType.CLIENT) return;
+        Function<FriendlyByteBuf, T> factory = CommonAbstractions.findMessageConstructor(clazz);
         ClientPlayNetworking.registerGlobalReceiver(channelName, (Minecraft client, ClientPacketListener handler, FriendlyByteBuf buf, PacketSender responseSender) -> {
             client.execute(() -> {
                 LocalPlayer player = client.player;
                 Objects.requireNonNull(player, "player is null");
-                listener.get().handle(this.readMessage(clazz, buf), client, handler, player, client.level);
+                listener.get().handle(factory.apply(buf), client, handler, player, client.level);
             });
         });
     }
@@ -81,9 +81,10 @@ public final class FabricAbstractions implements CommonAbstractions {
     @Override
     public <T extends WritableMessage> void registerServerboundMessage(Class<T> clazz, Supplier<NetworkingHelper.ServerMessageListener<T>> listener) {
         ResourceLocation channelName = this.registerChannelName(clazz);
+        Function<FriendlyByteBuf, T> factory = CommonAbstractions.findMessageConstructor(clazz);
         ServerPlayNetworking.registerGlobalReceiver(channelName, (MinecraftServer server, ServerPlayer player, ServerGamePacketListenerImpl handler, FriendlyByteBuf buf, PacketSender responseSender) -> {
             server.execute(() -> {
-                listener.get().handle(this.readMessage(clazz, buf), server, handler, player, player.serverLevel());
+                listener.get().handle(factory.apply(buf), server, handler, player, player.serverLevel());
             });
         });
     }
@@ -92,18 +93,6 @@ public final class FabricAbstractions implements CommonAbstractions {
         ResourceLocation channelName = ForgeConfigScreens.id("play/" + this.discriminator.getAndIncrement());
         this.messageRegistry.put(clazz, channelName);
         return channelName;
-    }
-
-    @SuppressWarnings("unchecked")
-    private <T extends WritableMessage> T readMessage(Class<T> clazz, FriendlyByteBuf buf) {
-        T message;
-        MethodType methodType = MethodType.methodType(void.class, FriendlyByteBuf.class);
-        try {
-            message = (T) MethodHandles.publicLookup().findConstructor(clazz, methodType).invoke(buf);
-        } catch (Throwable e) {
-            throw new RuntimeException(e);
-        }
-        return message;
     }
 
     @Override

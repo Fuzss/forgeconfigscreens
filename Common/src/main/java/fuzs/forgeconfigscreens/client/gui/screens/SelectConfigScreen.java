@@ -80,6 +80,7 @@ public class SelectConfigScreen extends Screen {
 			}
 		};
 		this.searchBox.setResponder(filter -> this.list.updateFilter(filter));
+		this.searchBox.setMaxLength(50);
 		this.addWidget(this.searchBox);
 		this.addRenderableWidget(Button.builder(CommonComponents.GUI_DONE, button -> {
 			this.onClose();

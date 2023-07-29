@@ -23,14 +23,15 @@ import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.simple.SimpleChannel;
 import net.minecraftforge.server.ServerLifecycleHooks;
 
+import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
-import java.lang.invoke.MethodType;
 import java.lang.reflect.Method;
 import java.nio.file.Path;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 public final class ForgeAbstractions implements CommonAbstractions {
@@ -93,16 +94,9 @@ public final class ForgeAbstractions implements CommonAbstractions {
         }, NetworkDirection.PLAY_TO_SERVER);
     }
 
-    @SuppressWarnings("unchecked")
     private <T extends WritableMessage> void registerMessage(Class<T> clazz, BiConsumer<T, ServerPlayer> consumer, NetworkDirection networkDirection) {
-        this.channel.registerMessage(this.discriminator.getAndIncrement(), clazz, WritableMessage::write, friendlyByteBuf -> {
-            MethodType methodType = MethodType.methodType(void.class, FriendlyByteBuf.class);
-            try {
-                return (T) MethodHandles.publicLookup().findConstructor(clazz, methodType).invoke(friendlyByteBuf);
-            } catch (Throwable e) {
-                throw new RuntimeException(e);
-            }
-        }, (T message, Supplier<NetworkEvent.Context> supplier) -> {
+        Function<FriendlyByteBuf, T> factory = CommonAbstractions.findMessageConstructor(clazz);
+        this.channel.registerMessage(this.discriminator.getAndIncrement(), clazz, WritableMessage::write, factory, (T message, Supplier<NetworkEvent.Context> supplier) -> {
             NetworkEvent.Context context = supplier.get();
             context.enqueueWork(() -> consumer.accept(message, context.getSender()));
             context.setPacketHandled(true);
