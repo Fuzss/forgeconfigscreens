@@ -115,7 +115,8 @@ public abstract class ConfigScreen extends Screen {
     }
 
     public static ConfigScreen create(Screen lastScreen, Component title, ModConfig config, Map<Object, IEntryData> valueToData) {
-        return new ConfigScreen.Main(lastScreen, title, ((ForgeConfigSpec) config.getSpec()).getValues(), valueToData, () -> ServerConfigUploader.saveAndUpload(config));
+        UnmodifiableConfig unmodifiableConfig = ServerConfigUploader.findForgeConfigSpec(config.getSpec()).map(ForgeConfigSpec::getValues).orElseThrow();
+        return new ConfigScreen.Main(lastScreen, title, unmodifiableConfig, valueToData, () -> ServerConfigUploader.saveAndUpload(config));
     }
 
     private static class Main extends ConfigScreen {

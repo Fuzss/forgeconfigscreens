@@ -33,10 +33,11 @@ public class ForgeConfigScreens {
     }
 
     private static void registerConfigs() {
-        if (!CommonAbstractions.INSTANCE.isDevelopmentEnvironment()) return;
-        CommonAbstractions.INSTANCE.registerConfig(MOD_ID, ModConfig.Type.CLIENT, SimpleConfig.CLIENT_SPEC, String.format("%s%s%s-%s.toml", ForgeConfigScreens.MOD_ID, File.separator, ForgeConfigScreens.MOD_ID, ModConfig.Type.CLIENT.extension()));
-        CommonAbstractions.INSTANCE.registerConfig(MOD_ID, ModConfig.Type.COMMON, SimpleConfig.COMMON_SPEC, String.format("%s-%s.toml", ForgeConfigScreens.MOD_ID, ModConfig.Type.COMMON.extension()));
-        CommonAbstractions.INSTANCE.registerConfig(MOD_ID, ModConfig.Type.SERVER, SimpleConfig.SERVER_SPEC, String.format("%s-%s.toml", ForgeConfigScreens.MOD_ID, ModConfig.Type.SERVER.extension()));
+        if (false) {
+            CommonAbstractions.INSTANCE.registerConfig(MOD_ID, ModConfig.Type.CLIENT, SimpleConfig.CLIENT_SPEC, String.format("%s%s%s-%s.toml", ForgeConfigScreens.MOD_ID, File.separator, ForgeConfigScreens.MOD_ID, ModConfig.Type.CLIENT.extension()));
+            CommonAbstractions.INSTANCE.registerConfig(MOD_ID, ModConfig.Type.COMMON, SimpleConfig.COMMON_SPEC, String.format("%s-%s.toml", ForgeConfigScreens.MOD_ID, ModConfig.Type.COMMON.extension()));
+            CommonAbstractions.INSTANCE.registerConfig(MOD_ID, ModConfig.Type.SERVER, SimpleConfig.SERVER_SPEC, String.format("%s-%s.toml", ForgeConfigScreens.MOD_ID, ModConfig.Type.SERVER.extension()));
+        }
     }
 
     public static ResourceLocation id(String path) {

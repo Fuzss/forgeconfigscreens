@@ -3,6 +3,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog].
 
+## [v8.0.2-1.20.1] - 2023-07-30
+### Fixed
+- Fixed an incompatibility with the [Night Config Fixes](https://www.curseforge.com/minecraft/mc-mods/night-config-fixes) mod
+
 ## [v8.0.1-1.20.1] - 2023-07-29
 ### Fixed
 - Fixed an issue where certain text boxes would have a very low character limit, preventing longer values from being entered

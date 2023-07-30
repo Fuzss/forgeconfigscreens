@@ -6,6 +6,7 @@ import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import fuzs.forgeconfigscreens.client.helper.ServerConfigUploader;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -116,17 +117,11 @@ public interface IEntryData {
     }
 
     static Map<Object, IEntryData> makeValueToDataMap(ModConfig config) {
-        if (checkInvalid(config)) {
-            return ImmutableMap.of();
-        }
+        ForgeConfigSpec spec = ServerConfigUploader.findForgeConfigSpec(config.getSpec()).orElse(null);
+        if (config.getConfigData() == null || spec == null || !spec.isLoaded()) return Map.of();
         Map<Object, IEntryData> allData = Maps.newHashMap();
-        ForgeConfigSpec spec = (ForgeConfigSpec) config.getSpec();
         makeValueToDataMap(spec, spec.getValues(), config.getConfigData(), allData);
         return ImmutableMap.copyOf(allData);
-    }
-
-    static boolean checkInvalid(ModConfig config) {
-        return config.getConfigData() == null || !(config.getSpec() instanceof ForgeConfigSpec spec) || !spec.isLoaded();
     }
 
     private static void makeValueToDataMap(ForgeConfigSpec spec, UnmodifiableConfig values, CommentedConfig comments, Map<Object, IEntryData> allData) {
