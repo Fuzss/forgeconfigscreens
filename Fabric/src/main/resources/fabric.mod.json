@@ -39,8 +39,11 @@
     "fabricloader": ">=${minFabricVersion}",
     "fabric-api": ">=${minFabricApiVersion}",
     "forgeconfigapiport": "*",
-    "modmenu": "*",
     "minecraft": "${minecraftVersion}",
     "java": ">=17"
+  },
+
+  "recommends": {
+    "modmenu": "*"
   }
 }
