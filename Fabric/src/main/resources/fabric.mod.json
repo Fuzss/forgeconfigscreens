@@ -45,5 +45,11 @@
 
   "recommends": {
     "modmenu": "*"
+  },
+
+  "custom": {
+    "catalogue": {
+      "banner": "mod_banner.png"
+    }
   }
 }
